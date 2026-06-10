@@ -139,6 +139,9 @@ struct MethodDetailView: View {
                         .foregroundStyle(d.id == bestLiveID ? Color.bahtGold : .primary)
                     Text("฿/$ BOARD").font(.system(size: 8, weight: .semibold)).kerning(0.6)
                         .foregroundStyle(.tertiary)
+                    if let src = d.live?.source {
+                        Text(src).font(.system(size: 8)).foregroundStyle(.tertiary)
+                    }
                 }
             }
             if d.info.mapsURL != nil {

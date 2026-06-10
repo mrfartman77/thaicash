@@ -9,6 +9,7 @@ struct BoothRateEntry: Codable, Identifiable {
     var usd100Buy: Decimal?     // THB per $1, USD-100 denomination buy rate
     var fetchedAt: String?
     var siteTime: String?
+    var source: String?         // e.g. "via CashChanger" when a third party supplies the board
     var reason: String?         // why a booth is pending/stale
 }
 
