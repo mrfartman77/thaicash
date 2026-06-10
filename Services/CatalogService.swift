@@ -9,7 +9,7 @@ final class CatalogService: ObservableObject {
     @Published private(set) var needsAppUpdate = false
 
     static let maxSupportedSchema = 3
-    static let remoteURL = URL(string: "https://cdn.yourco.com/thaicash/catalog.json")!  // replace for prod
+    static let remoteURL = URL(string: "https://raw.githubusercontent.com/mrfartman77/thaicash-data/main/catalog.json")!
 
     private static var cacheURL: URL {
         let dir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
