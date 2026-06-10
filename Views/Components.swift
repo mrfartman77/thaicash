@@ -72,9 +72,9 @@ struct BestBadge: View {
         Text("BEST")
             .font(.system(size: 9, weight: .bold))
             .kerning(1.2)
-            .foregroundStyle(Color.bahtGold)
+            .foregroundStyle(Color.sage)
             .padding(.horizontal, 8).padding(.vertical, 2.5)
-            .overlay(Capsule().strokeBorder(Color.bahtGold.opacity(0.5), lineWidth: 0.5))
+            .overlay(Capsule().strokeBorder(Color.sage.opacity(0.5), lineWidth: 0.5))
     }
 }
 

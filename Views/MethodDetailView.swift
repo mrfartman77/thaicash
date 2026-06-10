@@ -26,24 +26,6 @@ struct MethodDetailView: View {
                         .padding(.vertical, 4)
                     }
 
-                    Section("Where it goes") {
-                        ForEach(r.lines) { line in
-                            HStack {
-                                Text(line.label)
-                                Spacer()
-                                Text(Fmt.baht(line.thb)).monospacedDigit()
-                            }
-                            .foregroundStyle(line.isZero ? .secondary : .primary)
-                        }
-                        HStack {
-                            Text("Total").fontWeight(.bold)
-                            Spacer()
-                            Text(Fmt.baht(r.costThb)).fontWeight(.bold).monospacedDigit()
-                        }
-                    }
-
-                    AdjustSection(result: r)
-
                     if leg?.rateSource == .quoted, !boothDisplays.isEmpty {
                         Section {
                             ForEach(boothDisplays) { d in
@@ -112,13 +94,13 @@ struct MethodDetailView: View {
             let age = model.boothRates.ageText.map { ", updated \($0)" } ?? ""
             return "Using today's best board rate — \(best.name), \(Fmt.rate(r)) ฿/$\(age)."
         }
-        return "Estimated — the typical margin at the chains below. Type a board rate into Adjust for exact numbers."
+        return "Estimated — the typical margin at the chains below."
     }
 
     private var boothFooter: String {
         var s = "Live USD-100 board rates, refreshed every ~2h"
         if let age = model.boothRates.ageText { s += " · updated \(age)" }
-        return s + ". Well-known chains only — tap to open in Maps. Type a board rate into Adjust to override."
+        return s + ". Well-known chains only — tap to open in Maps."
     }
 
     private func boothRow(_ d: BoothDisplay) -> some View {
@@ -136,7 +118,7 @@ struct MethodDetailView: View {
                 VStack(alignment: .trailing, spacing: 1) {
                     Text(Fmt.rate(r))
                         .font(.system(size: 16, weight: .semibold)).monospacedDigit()
-                        .foregroundStyle(d.id == bestLiveID ? Color.bahtGold : .primary)
+                        .foregroundStyle(d.id == bestLiveID ? Color.sage : .primary)
                     Text("฿/$ BOARD").font(.system(size: 8, weight: .semibold)).kerning(0.6)
                         .foregroundStyle(.tertiary)
                     if let src = d.live?.source {
@@ -186,78 +168,10 @@ struct BoothQualityTag: View {
     }
     private var color: Color {
         switch quality {
-        case "best":    return .bahtGold
+        case "best":    return .sage    // green = the chosen/best booth
         case "good":    return .sage
         case "pending": return Color(white: 0.55)
         default:        return .lossRed
         }
-    }
-}
-
-/// Method-specific live controls — each write routes through `model.update`,
-/// so toggling recomputes the engine and the breakdown updates instantly.
-struct AdjustSection: View {
-    @EnvironmentObject var model: AppModel
-    let result: MethodResult
-    @State private var quoteText = ""   // string-backed: empty allowed, deletable
-
-    private var leg: Leg? { model.catalog.data.legs.first { $0.id == result.id } }
-
-    private var hasControls: Bool {
-        guard let leg else { return false }
-        let dcc = leg.fees.contains { $0.kind == .rateMargin && ($0.when?.dccAccepted ?? false) }
-        let funding = leg.fees.contains { $0.when?.fundingSource != nil }
-        return leg.rateSource == .quoted || dcc || funding || leg.interest != nil
-    }
-
-    var body: some View {
-        if let leg, hasControls {
-            Section("Adjust") {
-                if leg.rateSource == .quoted {
-                    HStack {
-                        Text("Booth's quoted rate")
-                        Spacer()
-                        TextField("e.g. 32.50", text: $quoteText)
-                            .multilineTextAlignment(.trailing)
-                            .keyboardType(.decimalPad)
-                            .frame(width: 110)
-                            .onChange(of: quoteText) { _, v in
-                                var clean = ""; var dot = false
-                                for ch in v {
-                                    if ch.isNumber { clean.append(ch) }
-                                    else if ch == "." && !dot { clean.append(ch); dot = true }
-                                }
-                                if clean != v { quoteText = clean }
-                                model.update { $0.boothQuote = clean.isEmpty ? nil : Decimal(string: clean) }
-                            }
-                            .onAppear { quoteText = model.profile.boothQuote.map { Fmt.rate($0) } ?? "" }
-                    }
-                }
-                if leg.fees.contains(where: { $0.kind == .rateMargin && ($0.when?.dccAccepted ?? false) }) {
-                    Toggle("I accepted DCC (don't!)", isOn: dccBinding)
-                }
-                if leg.fees.contains(where: { $0.when?.fundingSource != nil }) {
-                    Picker("Funding", selection: fundingBinding) {
-                        ForEach(FundingSource.allCases, id: \.self) { Text($0.label).tag($0) }
-                    }
-                }
-                if leg.interest != nil {
-                    Stepper("Pay off in \(model.profile.daysToPayoff) days", value: payoffBinding, in: 1...90)
-                }
-            }
-        }
-    }
-
-    private var dccBinding: Binding<Bool> {
-        Binding(get: { model.profile.toggles.dccAccepted },
-                set: { v in model.update { $0.toggles.dccAccepted = v } })
-    }
-    private var fundingBinding: Binding<FundingSource> {
-        Binding(get: { model.profile.fundingSource },
-                set: { v in model.update { $0.fundingSource = v } })
-    }
-    private var payoffBinding: Binding<Int> {
-        Binding(get: { model.profile.daysToPayoff },
-                set: { v in model.update { $0.daysToPayoff = v } })
     }
 }

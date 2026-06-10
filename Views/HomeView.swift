@@ -283,7 +283,7 @@ struct MethodRow: View {
         return s
     }
     private var costColor: Color {
-        if result.isBest { return .bahtGold }
+        if result.isBest { return .sage }          // green = the best (cheapest) option
         if result.costVsMidPct >= 8 { return .lossRed }
         return .primary
     }
