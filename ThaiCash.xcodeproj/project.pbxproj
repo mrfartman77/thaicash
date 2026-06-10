@@ -1,0 +1,381 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		137AC61FA3D2BA499166EE26 /* ThaiCashApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77F2179D728E938C20CD0649 /* ThaiCashApp.swift */; };
+		15E6D648C9DBC807881AA75A /* MethodDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE6ED9B36C1BCD2436660FAE /* MethodDetailView.swift */; };
+		1D9F96EED5534C278B22AD7C /* Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51A13374C4E9D745329956B2 /* Engine.swift */; };
+		61B4BE968456B35108554B18 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C0054ECAA821845C6CECA96F /* Assets.xcassets */; };
+		62102337AFBE462D7764C4FF /* Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = D16EE04858098F9D2578DDDD /* Components.swift */; };
+		7BD46ECF51F32195993EDD29 /* RateService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46C0075DD26CB9ABB73AE9E3 /* RateService.swift */; };
+		8718978741304381F8C8F675 /* CatalogService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 32EFFB1FE151D87D3FB29EDC /* CatalogService.swift */; };
+		94D70B2DE21D9744F1643492 /* catalog.json in Resources */ = {isa = PBXBuildFile; fileRef = DF2972E38EF67DD240FE2FF1 /* catalog.json */; };
+		97EE0D80DA9D31FDEC4A9893 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04DE5E3EAAB1285566E05BF9 /* ProfileView.swift */; };
+		9E52F828B5AB47B498E27AB2 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D021F332CE7D6C2707E1CE1 /* HomeView.swift */; };
+		FCEFB5EF95C650FBEC2A711A /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2E3E2541CCFE3CA0938EC34 /* Models.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		04DE5E3EAAB1285566E05BF9 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
+		1D021F332CE7D6C2707E1CE1 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
+		32EFFB1FE151D87D3FB29EDC /* CatalogService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogService.swift; sourceTree = "<group>"; };
+		46C0075DD26CB9ABB73AE9E3 /* RateService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RateService.swift; sourceTree = "<group>"; };
+		51A13374C4E9D745329956B2 /* Engine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Engine.swift; sourceTree = "<group>"; };
+		77F2179D728E938C20CD0649 /* ThaiCashApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThaiCashApp.swift; sourceTree = "<group>"; };
+		A2E3E2541CCFE3CA0938EC34 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		C0054ECAA821845C6CECA96F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		D16EE04858098F9D2578DDDD /* Components.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components.swift; sourceTree = "<group>"; };
+		D6320E8DA6188C41E4506AAE /* ThaiCash.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = ThaiCash.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		DF2972E38EF67DD240FE2FF1 /* catalog.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = catalog.json; sourceTree = "<group>"; };
+		FE6ED9B36C1BCD2436660FAE /* MethodDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MethodDetailView.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXGroup section */
+		304E367E95BFBA6E536128FE /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				A2E3E2541CCFE3CA0938EC34 /* Models.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		5232D25FC4C696BC65C61052 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				D16EE04858098F9D2578DDDD /* Components.swift */,
+				1D021F332CE7D6C2707E1CE1 /* HomeView.swift */,
+				FE6ED9B36C1BCD2436660FAE /* MethodDetailView.swift */,
+				04DE5E3EAAB1285566E05BF9 /* ProfileView.swift */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		5ABCF74C6AC0199C7EE04808 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D6320E8DA6188C41E4506AAE /* ThaiCash.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		6CDDA9D5FC5432C6FDF16B80 /* Engine */ = {
+			isa = PBXGroup;
+			children = (
+				51A13374C4E9D745329956B2 /* Engine.swift */,
+			);
+			path = Engine;
+			sourceTree = "<group>";
+		};
+		6F359CF6D8562EBD6DEB9BB2 = {
+			isa = PBXGroup;
+			children = (
+				A498757A4BC7DDC9C6D74630 /* App */,
+				6CDDA9D5FC5432C6FDF16B80 /* Engine */,
+				304E367E95BFBA6E536128FE /* Models */,
+				C109A7A383FAD1080D96C974 /* Resources */,
+				F25674F6788FC6553B50ACE3 /* Services */,
+				5232D25FC4C696BC65C61052 /* Views */,
+				5ABCF74C6AC0199C7EE04808 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		A498757A4BC7DDC9C6D74630 /* App */ = {
+			isa = PBXGroup;
+			children = (
+				77F2179D728E938C20CD0649 /* ThaiCashApp.swift */,
+			);
+			path = App;
+			sourceTree = "<group>";
+		};
+		C109A7A383FAD1080D96C974 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+				C0054ECAA821845C6CECA96F /* Assets.xcassets */,
+				DF2972E38EF67DD240FE2FF1 /* catalog.json */,
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		F25674F6788FC6553B50ACE3 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				32EFFB1FE151D87D3FB29EDC /* CatalogService.swift */,
+				46C0075DD26CB9ABB73AE9E3 /* RateService.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		D4C0F886377D790293087B66 /* ThaiCash */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = E40B4E777DAC2EE9E85C45A6 /* Build configuration list for PBXNativeTarget "ThaiCash" */;
+			buildPhases = (
+				547A78120BA68977183A8AB1 /* Sources */,
+				383FD0DABB815F874AB5C4E8 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = ThaiCash;
+			packageProductDependencies = (
+			);
+			productName = ThaiCash;
+			productReference = D6320E8DA6188C41E4506AAE /* ThaiCash.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		A72C08AD294C36B3B37CB034 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1430;
+				TargetAttributes = {
+				};
+			};
+			buildConfigurationList = 447FEA13BE758F1D20FAE809 /* Build configuration list for PBXProject "ThaiCash" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = 6F359CF6D8562EBD6DEB9BB2;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 5ABCF74C6AC0199C7EE04808 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				D4C0F886377D790293087B66 /* ThaiCash */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		383FD0DABB815F874AB5C4E8 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				61B4BE968456B35108554B18 /* Assets.xcassets in Resources */,
+				94D70B2DE21D9744F1643492 /* catalog.json in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		547A78120BA68977183A8AB1 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				8718978741304381F8C8F675 /* CatalogService.swift in Sources */,
+				62102337AFBE462D7764C4FF /* Components.swift in Sources */,
+				1D9F96EED5534C278B22AD7C /* Engine.swift in Sources */,
+				9E52F828B5AB47B498E27AB2 /* HomeView.swift in Sources */,
+				15E6D648C9DBC807881AA75A /* MethodDetailView.swift in Sources */,
+				FCEFB5EF95C650FBEC2A711A /* Models.swift in Sources */,
+				97EE0D80DA9D31FDEC4A9893 /* ProfileView.swift in Sources */,
+				7BD46ECF51F32195993EDD29 /* RateService.swift in Sources */,
+				137AC61FA3D2BA499166EE26 /* ThaiCashApp.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		5A81CAF755FA9C4EBEEF5D67 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.thaicash.app;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Release;
+		};
+		69A49BDC76917044DC97381A /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = ThaiCash;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Release;
+		};
+		7ED3BDED355DC6F269327248 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				CURRENT_PROJECT_VERSION = 1;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = ThaiCash;
+				INFOPLIST_KEY_UILaunchScreen_Generation = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 17.0;
+				MARKETING_VERSION = 1.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 1;
+			};
+			name = Debug;
+		};
+		902D5C551C96A9D7CDB8ED31 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_IDENTITY = "iPhone Developer";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.thaicash.app;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		447FEA13BE758F1D20FAE809 /* Build configuration list for PBXProject "ThaiCash" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7ED3BDED355DC6F269327248 /* Debug */,
+				69A49BDC76917044DC97381A /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		E40B4E777DAC2EE9E85C45A6 /* Build configuration list for PBXNativeTarget "ThaiCash" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				902D5C551C96A9D7CDB8ED31 /* Debug */,
+				5A81CAF755FA9C4EBEEF5D67 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = A72C08AD294C36B3B37CB034 /* Project object */;
+}
