@@ -81,7 +81,7 @@ struct RootView: View {
 
     #if DEBUG
     // Launch directly into a screen for headless screenshots, e.g.
-    // SIMCTL_CHILD_UITEST_SCREEN=detail xcrun simctl launch booted com.thbfx.app
+    // SIMCTL_CHILD_UITEST_SCREEN=detail xcrun simctl launch booted com.thaicash.app
     @ViewBuilder private func screenshotRoot(_ screen: String) -> some View {
         switch screen {
         case "detail":  NavigationStack { MethodDetailView(legID: ProcessInfo.processInfo.environment["UITEST_LEG"] ?? "wise_card_atm") }

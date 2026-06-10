@@ -10,6 +10,7 @@
 		137AC61FA3D2BA499166EE26 /* ThaiCashApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77F2179D728E938C20CD0649 /* ThaiCashApp.swift */; };
 		15E6D648C9DBC807881AA75A /* MethodDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE6ED9B36C1BCD2436660FAE /* MethodDetailView.swift */; };
 		1D9F96EED5534C278B22AD7C /* Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51A13374C4E9D745329956B2 /* Engine.swift */; };
+		29054D9CEA8DCC889D0B67E1 /* BoothRatesService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA6AB51F0207EDD197665B50 /* BoothRatesService.swift */; };
 		61B4BE968456B35108554B18 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = C0054ECAA821845C6CECA96F /* Assets.xcassets */; };
 		62102337AFBE462D7764C4FF /* Components.swift in Sources */ = {isa = PBXBuildFile; fileRef = D16EE04858098F9D2578DDDD /* Components.swift */; };
 		7BD46ECF51F32195993EDD29 /* RateService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 46C0075DD26CB9ABB73AE9E3 /* RateService.swift */; };
@@ -31,6 +32,7 @@
 		C0054ECAA821845C6CECA96F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D16EE04858098F9D2578DDDD /* Components.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components.swift; sourceTree = "<group>"; };
 		D6320E8DA6188C41E4506AAE /* ThaiCash.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = ThaiCash.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		DA6AB51F0207EDD197665B50 /* BoothRatesService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BoothRatesService.swift; sourceTree = "<group>"; };
 		DF2972E38EF67DD240FE2FF1 /* catalog.json */ = {isa = PBXFileReference; lastKnownFileType = text.json; path = catalog.json; sourceTree = "<group>"; };
 		FE6ED9B36C1BCD2436660FAE /* MethodDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MethodDetailView.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -104,6 +106,7 @@
 		F25674F6788FC6553B50ACE3 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				DA6AB51F0207EDD197665B50 /* BoothRatesService.swift */,
 				32EFFB1FE151D87D3FB29EDC /* CatalogService.swift */,
 				46C0075DD26CB9ABB73AE9E3 /* RateService.swift */,
 			);
@@ -178,6 +181,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				29054D9CEA8DCC889D0B67E1 /* BoothRatesService.swift in Sources */,
 				8718978741304381F8C8F675 /* CatalogService.swift in Sources */,
 				62102337AFBE462D7764C4FF /* Components.swift in Sources */,
 				1D9F96EED5534C278B22AD7C /* Engine.swift in Sources */,
