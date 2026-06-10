@@ -7,11 +7,13 @@ enum Engine {
     static func compare(catalog: Catalog,
                         profile: Profile,
                         targetThb: Decimal,
-                        rMid: Decimal) -> [OutputGroup: [MethodResult]] {
+                        rMid: Decimal,
+                        liveBoothRate: Decimal? = nil) -> [OutputGroup: [MethodResult]] {
 
         var byGroup: [OutputGroup: [MethodResult]] = [:]
         for leg in catalog.legs {
-            let result = evaluate(leg: leg, profile: profile, targetThb: targetThb, rMid: rMid)
+            let result = evaluate(leg: leg, profile: profile, targetThb: targetThb, rMid: rMid,
+                                  liveBoothRate: liveBoothRate)
             byGroup[leg.group, default: []].append(result)
         }
 
@@ -27,7 +29,8 @@ enum Engine {
     static func evaluate(leg: Leg,
                          profile: Profile,
                          targetThb: Decimal,
-                         rMid: Decimal) -> MethodResult {
+                         rMid: Decimal,
+                         liveBoothRate: Decimal? = nil) -> MethodResult {
 
         // ---- number of withdrawals (cap-driven) ----
         let withdrawals: Int = {
@@ -63,7 +66,10 @@ enum Engine {
         case .midMarket:
             rApplied = rMid
         case .quoted:
-            rApplied = profile.boothQuote ?? (rMid * (1 - (leg.typicalBoothMargin ?? profile.boothMarginOffMid)))
+            // precedence: the user's typed quote > today's best scraped board > the estimate
+            rApplied = profile.boothQuote
+                ?? liveBoothRate
+                ?? (rMid * (1 - (leg.typicalBoothMargin ?? profile.boothMarginOffMid)))
         case .midMarketMargin:
             rApplied = rMid * (1 - (leg.fxMarginPct ?? 0))
         }

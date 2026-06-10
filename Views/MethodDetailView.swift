@@ -17,9 +17,7 @@ struct MethodDetailView: View {
                             Text(Fmt.baht(r.costThb)).font(.system(size: 36, weight: .semibold)).monospacedDigit()
                             Text(summary(r)).font(.footnote).monospacedDigit().foregroundStyle(.secondary)
                             if leg?.rateSource == .quoted {
-                                Text(model.profile.boothQuote == nil
-                                     ? "Estimated — the typical margin at the chains below. Type a board rate into Adjust for exact numbers."
-                                     : "Using the board rate you entered — exact for that booth.")
+                                Text(boothSourceText)
                                     .font(.caption2)
                                     .foregroundStyle(.tertiary)
                                     .padding(.top, 2)
@@ -46,19 +44,19 @@ struct MethodDetailView: View {
 
                     AdjustSection(result: r)
 
-                    if leg?.rateSource == .quoted, let booths = model.catalog.data.booths, !booths.isEmpty {
+                    if leg?.rateSource == .quoted, !boothDisplays.isEmpty {
                         Section {
-                            ForEach(booths) { b in
-                                if let url = b.mapsURL {
-                                    Link(destination: url) { boothRow(b) }
+                            ForEach(boothDisplays) { d in
+                                if let url = d.info.mapsURL {
+                                    Link(destination: url) { boothRow(d) }
                                 } else {
-                                    boothRow(b)
+                                    boothRow(d)
                                 }
                             }
                         } header: {
                             Text("Find a booth")
                         } footer: {
-                            Text("Well-known chains only — tap to open in Maps. The board at the door is the truth: type its rate into Adjust to compare exactly.")
+                            Text(boothFooter)
                         }
                     }
 
@@ -82,22 +80,79 @@ struct MethodDetailView: View {
         }
     }
 
-    private func boothRow(_ b: BoothInfo) -> some View {
-        HStack(alignment: .top) {
+    /// Catalog directory entry joined with its live scraped board rate (if any).
+    private struct BoothDisplay: Identifiable {
+        let info: BoothInfo
+        let live: BoothRateEntry?
+        var id: String { info.id }
+    }
+
+    /// Measured booths first (best board on top), then pending, AVOID last.
+    private var boothDisplays: [BoothDisplay] {
+        guard let booths = model.catalog.data.booths, !booths.isEmpty else { return [] }
+        let byID = Dictionary(uniqueKeysWithValues: model.boothRates.live.map { ($0.id, $0) })
+        let all = booths.map { BoothDisplay(info: $0, live: byID[$0.id]) }
+        let rated = all.filter { $0.live != nil }
+            .sorted { ($0.live?.usd100Buy ?? 0) > ($1.live?.usd100Buy ?? 0) }
+        let pending = all.filter { $0.live == nil && $0.info.quality != "avoid" }
+        let avoid = all.filter { $0.live == nil && $0.info.quality == "avoid" }
+        return rated + pending + avoid
+    }
+
+    private var bestLiveID: String? {
+        boothDisplays.first(where: { $0.live != nil })?.id
+    }
+
+    /// Whose rate is the headline using? quote > live best board > estimate.
+    private var boothSourceText: String {
+        if model.profile.boothQuote != nil {
+            return "Using the board rate you entered — exact for that booth."
+        }
+        if let best = model.boothRates.bestUsable, let r = best.usd100Buy {
+            let age = model.boothRates.ageText.map { ", updated \($0)" } ?? ""
+            return "Using today's best board rate — \(best.name), \(Fmt.rate(r)) ฿/$\(age)."
+        }
+        return "Estimated — the typical margin at the chains below. Type a board rate into Adjust for exact numbers."
+    }
+
+    private var boothFooter: String {
+        var s = "Live USD-100 board rates, refreshed every ~2h"
+        if let age = model.boothRates.ageText { s += " · updated \(age)" }
+        return s + ". Well-known chains only — tap to open in Maps. Type a board rate into Adjust to override."
+    }
+
+    private func boothRow(_ d: BoothDisplay) -> some View {
+        HStack(alignment: .center, spacing: 10) {
             VStack(alignment: .leading, spacing: 3) {
                 HStack(spacing: 7) {
-                    Text(b.name).font(.subheadline).fontWeight(.medium).foregroundStyle(.primary)
-                    BoothQualityTag(quality: b.quality)
+                    Text(d.info.name).font(.subheadline).fontWeight(.medium).foregroundStyle(.primary)
+                    if let tag = tagQuality(for: d) { BoothQualityTag(quality: tag) }
                 }
-                Text(b.areas).font(.caption).foregroundStyle(.secondary)
-                if let n = b.note { Text(n).font(.caption2).foregroundStyle(.tertiary) }
+                Text(d.info.areas).font(.caption).foregroundStyle(.secondary)
+                if let n = d.info.note { Text(n).font(.caption2).foregroundStyle(.tertiary) }
             }
             Spacer()
-            if b.mapsURL != nil {
+            if let r = d.live?.usd100Buy {
+                VStack(alignment: .trailing, spacing: 1) {
+                    Text(Fmt.rate(r))
+                        .font(.system(size: 16, weight: .semibold)).monospacedDigit()
+                        .foregroundStyle(d.id == bestLiveID ? Color.bahtGold : .primary)
+                    Text("฿/$ BOARD").font(.system(size: 8, weight: .semibold)).kerning(0.6)
+                        .foregroundStyle(.tertiary)
+                }
+            }
+            if d.info.mapsURL != nil {
                 Image(systemName: "arrow.up.right.square")
                     .foregroundStyle(Color.bahtGold).font(.subheadline)
             }
         }
+    }
+
+    /// Measured booths: only the winner gets a tag (the rate speaks for the rest).
+    /// Unmeasured: grey RATES PENDING, except the avoid row.
+    private func tagQuality(for d: BoothDisplay) -> String? {
+        if d.live != nil { return d.id == bestLiveID ? "best" : nil }
+        return d.info.quality == "avoid" ? "avoid" : "pending"
     }
 
     private func summary(_ r: MethodResult) -> String {
@@ -120,16 +175,18 @@ struct BoothQualityTag: View {
     }
     private var label: String {
         switch quality {
-        case "best": return "BEST RATES"
-        case "good": return "GOOD"
-        default:     return "AVOID"
+        case "best":    return "BEST RATES"
+        case "good":    return "GOOD"
+        case "pending": return "RATES PENDING"
+        default:        return "AVOID"
         }
     }
     private var color: Color {
         switch quality {
-        case "best": return .bahtGold
-        case "good": return .sage
-        default:     return .lossRed
+        case "best":    return .bahtGold
+        case "good":    return .sage
+        case "pending": return Color(white: 0.55)
+        default:        return .lossRed
         }
     }
 }
