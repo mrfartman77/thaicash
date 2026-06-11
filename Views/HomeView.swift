@@ -281,6 +281,7 @@ struct MethodRow: View {
     var savings: Decimal? = nil
     var titleOverride: String? = nil    // rollup rows show the subgroup label…
     var subtitleTag: String? = nil      // …and name the winning member up front
+    var inList: Bool = false            // List rows: the List supplies insets + chevron
 
     var body: some View {
         HStack(alignment: .top, spacing: 10) {
@@ -305,9 +306,12 @@ struct MethodRow: View {
                     .foregroundStyle(costColor)
                 Text("TRUE COST").font(.system(size: 9, weight: .semibold)).kerning(0.8).foregroundStyle(.tertiary)
             }
-            Image(systemName: "chevron.right").font(.caption.weight(.semibold)).foregroundStyle(.tertiary)
+            if !inList {
+                Image(systemName: "chevron.right").font(.caption.weight(.semibold)).foregroundStyle(.tertiary)
+            }
         }
-        .padding(.horizontal, 18).padding(.vertical, 14)
+        .padding(.horizontal, inList ? 0 : 18)
+        .padding(.vertical, inList ? 4 : 14)
         .contentShape(Rectangle())
     }
 

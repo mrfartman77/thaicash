@@ -174,29 +174,20 @@ struct SubgroupDetailView: View {
     }
 
     var body: some View {
-        ScrollView {
-            VStack(alignment: .leading, spacing: 10) {
-                Card {
-                    ForEach(Array(members.enumerated()), id: \.element.id) { idx, r in
-                        if idx > 0 { Divider().padding(.leading, 16) }
-                        NavigationLink {
-                            MethodDetailView(legID: r.id)
-                        } label: {
-                            MethodRow(result: r, savings: r.isBest ? worstCost - r.costThb : nil)
-                        }
-                        .buttonStyle(.plain)
+        List {
+            Section {
+                ForEach(members) { r in
+                    NavigationLink {
+                        MethodDetailView(legID: r.id)
+                    } label: {
+                        MethodRow(result: r, savings: r.isBest ? worstCost - r.costThb : nil,
+                                  inList: true)
                     }
                 }
+            } footer: {
                 Text(footnote)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-                    .padding(.leading, 18)
             }
-            .padding(.horizontal, 16)
-            .padding(.top, 8)
-            .padding(.bottom, 96)
         }
-        .background(Color.appBackground)
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.inline)
     }
