@@ -39,7 +39,7 @@ struct ProfileView: View {
                 Section {
                     DecimalRow(title: "Foreign-txn fee", suffix: "%", key: "bank_ftf",
                                defaultValue: catalogDefault("bank_ftf") ?? 0.03, scale: 100)
-                    DecimalRow(title: "Your bank's ATM fee", prefix: symbol, key: "bank_atm_fee",
+                    DecimalRow(title: "Your bank's ATM fee", suffix: symbol, key: "bank_atm_fee",
                                defaultValue: catalogDefault("bank_atm_fee") ?? 5, scale: 1)
                     DecimalRow(title: "Cash-advance fee", suffix: "%", key: "ca_fee",
                                defaultValue: catalogDefault("ca_fee") ?? 0.05, scale: 100)
