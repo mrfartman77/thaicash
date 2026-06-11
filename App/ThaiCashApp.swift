@@ -199,8 +199,18 @@ struct CorridorListView: View {
             .padding(.bottom, 96)
         }
         .background(Color.appBackground)
-        .navigationTitle("ThaiCash")
         .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem(placement: .principal) {
+                HStack(spacing: 7) {
+                    Image("Emblem")
+                        .resizable()
+                        .frame(width: 24, height: 24)
+                        .clipShape(RoundedRectangle(cornerRadius: 5.5, style: .continuous))
+                    Text("ThaiCash").font(.headline)
+                }
+            }
+        }
     }
 
     private func corridorRow(_ c: Corridor) -> some View {

@@ -288,13 +288,11 @@ final class EngineTests: XCTestCase {
     // MARK: - compare: grouping, sorting, isBest, speed
 
     func testCompareGroupsSortsAndMarksBest() {
-        let catalog = Catalog(schemaVersion: 4, catalogUpdated: "2026-01-01",
-                              atmHostFeeThb: 220, atmCapThb: 20_000,
-                              legs: [leg(id: "pricey", rateSource: .midMarketMargin, fxMarginPct: d("0.01")),
-                                     leg(id: "free"),
-                                     leg(id: "mid", rateSource: .midMarketMargin, fxMarginPct: d("0.003")),
-                                     leg(id: "bank", group: .thbInBank, speed: "~4–6d")])
-        let out = Engine.compare(catalog: catalog, profile: Profile(), targetThb: 35_000, rMid: 35)
+        let legs = [leg(id: "pricey", rateSource: .midMarketMargin, fxMarginPct: d("0.01")),
+                    leg(id: "free"),
+                    leg(id: "mid", rateSource: .midMarketMargin, fxMarginPct: d("0.003")),
+                    leg(id: "bank", group: .thbInBank, speed: "~4–6d")]
+        let out = Engine.compare(legs: legs, profile: Profile(), targetThb: 35_000, rMid: 35)
 
         let cash = out[.cashInHand]!
         XCTAssertEqual(cash.map(\.id), ["free", "mid", "pricey"])   // cheapest (highest rate) first

@@ -16,64 +16,95 @@ final class CatalogSeedTests: XCTestCase {
         return try JSONDecoder().decode(Catalog.self, from: Data(contentsOf: u))
     }
 
-    func testSeedDecodesWithExpectedLegs() throws {
+    func testSeedDecodesWithExpectedCorridors() throws {
         let c = try loadSeed()
 
-        XCTAssertEqual(c.schemaVersion, 4)
+        XCTAssertEqual(c.schemaVersion, 5)
         XCTAssertEqual(c.schemaVersion, CatalogService.maxSupportedSchema,
                        "Seed schema and the app's schema guard must move together")
         XCTAssertFalse(c.catalogUpdated.isEmpty)
-        XCTAssertTrue(c.atmHostFeeThb > 0)
-        XCTAssertTrue(c.atmCapThb > 0)
 
-        let expectedIds: Set<String> = [
+        XCTAssertEqual(c.corridors.map(\.id), ["usd_thb", "eur_thb", "aud_thb", "usdt_thb"])
+        for cor in c.corridors {
+            XCTAssertFalse(cor.base.isEmpty)
+            XCTAssertFalse(cor.baseSymbol.isEmpty)
+            XCTAssertFalse(cor.label.isEmpty)
+            let ids = cor.legs.map(\.id)
+            XCTAssertEqual(ids.count, Set(ids).count, "\(cor.id): duplicate leg ids")
+            for l in cor.legs {
+                XCTAssertFalse(l.label.isEmpty, "\(cor.id)/\(l.id): empty label")
+            }
+        }
+
+        let usd = c.corridors[0]
+        XCTAssertEqual(Set(usd.legs.map(\.id)), [
             "booth", "schwab_debit_atm", "wise_card_atm", "revolut_card_atm",
             "atm_debit", "cc_advance",
             "wise_transfer_bank", "remitly_transfer_bank", "revolut_transfer_bank",
             "xe_transfer_bank", "ofx_transfer_bank",
-            "binance_th_usdt", "bitkub_usdt", "bitazza_usdt",
-        ]
-        XCTAssertEqual(c.legs.count, 14)
-        XCTAssertEqual(Set(c.legs.map(\.id)), expectedIds)   // count + set ⇒ no duplicates
+        ])
 
-        for l in c.legs {
-            XCTAssertFalse(l.label.isEmpty, "\(l.id): empty label")
+        let eur = c.corridors[1]
+        XCTAssertTrue(eur.legs.contains { $0.id == "trade_republic_atm" }, "EUR hero card missing")
+        XCTAssertTrue(eur.legs.contains { $0.id == "instarem_transfer_bank" })
+
+        let aud = c.corridors[2]
+        XCTAssertTrue(aud.legs.contains { $0.id == "macquarie_atm" }, "AUD hero card missing")
+        XCTAssertTrue(aud.legs.contains { $0.id == "instarem_transfer_bank" })
+
+        let usdt = c.corridors[3]
+        XCTAssertEqual(Set(usdt.legs.map(\.id)), ["binance_th_usdt", "bitkub_usdt", "bitazza_usdt"])
+        XCTAssertTrue(usdt.legs.allSatisfy { $0.group == .cryptoThb })
+
+        // Crypto lives ONLY in its own corridor — never in the fiat menus.
+        for cor in c.corridors.dropLast() {
+            XCTAssertFalse(cor.legs.contains { $0.group == .cryptoThb },
+                           "\(cor.id): crypto leg leaked into a fiat corridor")
         }
     }
 
     func testSeedBoothsAndDirectories() throws {
         let c = try loadSeed()
 
-        let booths = try XCTUnwrap(c.booths)
-        XCTAssertFalse(booths.isEmpty)
-        for b in booths {
-            XCTAssertFalse(b.id.isEmpty)
-            XCTAssertFalse(b.name.isEmpty, "\(b.id): empty name")
-            XCTAssertFalse(b.areas.isEmpty, "\(b.id): empty areas")
-        }
+        // Every fiat corridor carries the booth directory + ATM locator.
+        for cor in c.corridors where cor.id != "usdt_thb" {
+            let booths = try XCTUnwrap(cor.booths, "\(cor.id): booths missing")
+            XCTAssertFalse(booths.isEmpty)
+            for b in booths {
+                XCTAssertFalse(b.id.isEmpty)
+                XCTAssertFalse(b.name.isEmpty, "\(b.id): empty name")
+                XCTAssertFalse(b.areas.isEmpty, "\(b.id): empty areas")
+            }
 
-        let dirs = try XCTUnwrap(c.directories)
-        let atm = try XCTUnwrap(dirs["atm_cash"], "atm_cash locator missing")
-        XCTAssertFalse(atm.entries.isEmpty)
-        for e in atm.entries {
-            XCTAssertFalse(e.id.isEmpty)
-            XCTAssertFalse(e.name.isEmpty, "\(e.id): empty name")
-            XCTAssertFalse(e.areas.isEmpty, "\(e.id): empty areas")
+            let dirs = try XCTUnwrap(cor.directories, "\(cor.id): directories missing")
+            let atm = try XCTUnwrap(dirs["atm_cash"], "\(cor.id): atm_cash locator missing")
+            XCTAssertFalse(atm.entries.isEmpty)
+            for e in atm.entries {
+                XCTAssertFalse(e.id.isEmpty)
+                XCTAssertFalse(e.name.isEmpty, "\(e.id): empty name")
+                XCTAssertFalse(e.areas.isEmpty, "\(e.id): empty areas")
+            }
         }
     }
 
-    /// Smoke test: every seed leg runs through the engine and yields a usable
-    /// result with a defaults profile — no leg hits the rate-unavailable path.
+    /// Smoke test: every corridor's legs run through the engine and yield a
+    /// usable result with a defaults profile — no leg hits the rate-unavailable
+    /// path. Mid rates roughly match each base so the math stays plausible.
     func testSeedComparesCleanly() throws {
         let c = try loadSeed()
-        let out = Engine.compare(catalog: c, profile: Profile(), targetThb: 35_000, rMid: 35)
+        let mids: [String: Decimal] = ["USD": 33, "EUR": 38, "AUD": 23, "USDT": 33]
 
-        XCTAssertEqual(Set(out.keys), Set(c.legs.map(\.group)))
-        for (group, results) in out {
-            XCTAssertEqual(results.filter(\.isBest).count, 1, "\(group): exactly one best")
-            for r in results {
-                XCTAssertTrue(r.usdCost > 0, "\(r.id): no cost computed")
-                XCTAssertTrue(r.effectiveRate > 0, "\(r.id): no rate")
+        for cor in c.corridors {
+            let rMid = try XCTUnwrap(mids[cor.base], "\(cor.id): no test mid for \(cor.base)")
+            let out = Engine.compare(legs: cor.legs, profile: Profile(),
+                                     targetThb: 35_000, rMid: rMid)
+            XCTAssertEqual(Set(out.keys), Set(cor.legs.map(\.group)))
+            for (group, results) in out {
+                XCTAssertEqual(results.filter(\.isBest).count, 1, "\(cor.id)/\(group): exactly one best")
+                for r in results {
+                    XCTAssertTrue(r.usdCost > 0, "\(cor.id)/\(r.id): no cost computed")
+                    XCTAssertTrue(r.effectiveRate > 0, "\(cor.id)/\(r.id): no rate")
+                }
             }
         }
     }
