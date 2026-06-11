@@ -61,8 +61,9 @@ final class AppModel: ObservableObject {
 
     /// Crypto venue bids are THB-per-USDT. For non-USD corridors, convert to
     /// THB-per-base via the mid cross (1 base ≈ baseMid/usdMid USDT, USDT≈$1)
-    /// so every corridor compares apples to apples.
-    private var liveRatesForCorridor: [String: Decimal] {
+    /// so every corridor compares apples to apples. Internal so the detail
+    /// screen can disclose the cross math.
+    var liveRatesForCorridor: [String: Decimal] {
         let raw = cryptoRates.liveRates
         guard !raw.isEmpty, let c = corridor else { return [:] }
         if c.base == "USD" { return raw }
@@ -147,12 +148,19 @@ struct RootView: View {
     // Launch directly into a screen for headless screenshots, e.g.
     // SIMCTL_CHILD_UITEST_SCREEN=detail xcrun simctl launch booted com.thaicash.app
     @ViewBuilder private func screenshotRoot(_ screen: String) -> some View {
-        switch screen {
-        case "detail":  NavigationStack { MethodDetailView(legID: ProcessInfo.processInfo.environment["UITEST_LEG"] ?? "wise_card_atm") }
-        case "atm":     NavigationStack { SubgroupDetailView(title: "ATM withdrawal", subgroupKey: "atm_cash", memberIDs: ["schwab_debit_atm", "wise_card_atm", "revolut_card_atm", "atm_debit", "cc_advance"]) }
-        case "home":    NavigationStack { corridorHome }
-        case "setup":   ProfileView()
-        default:        mainTabs
+        Group {
+            switch screen {
+            case "detail":  NavigationStack { MethodDetailView(legID: ProcessInfo.processInfo.environment["UITEST_LEG"] ?? "wise_card_atm") }
+            case "atm":     NavigationStack { SubgroupDetailView(title: "ATM withdrawal", subgroupKey: "atm_cash", memberIDs: ["schwab_debit_atm", "wise_card_atm", "revolut_card_atm", "atm_debit", "cc_advance"]) }
+            case "home":    NavigationStack { corridorHome }
+            case "setup":   ProfileView()
+            default:        mainTabs
+            }
+        }
+        .onAppear {
+            if let cid = ProcessInfo.processInfo.environment["UITEST_CORRIDOR"] {
+                model.corridorID = cid
+            }
         }
     }
 

@@ -125,11 +125,18 @@ struct MethodDetailView: View {
         return "Estimated — the typical margin at the chains below."
     }
 
-    /// Whose USDT/THB price is the headline using? live venue bid > mid assumption.
+    /// Whose USDT/THB price is the headline using? live venue bid > mid
+    /// assumption. Non-USD corridors disclose the cross: the venue trades
+    /// USDT only — the ฿/€ figure is bid × (base mid ÷ USD mid).
     private var cryptoSourceText: String {
-        if let r = model.cryptoRates.liveRates[legID] {
+        if let raw = model.cryptoRates.liveRates[legID] {
             let age = model.cryptoRates.ageText.map { ", updated \($0)" } ?? ""
-            return "Using the venue's live bid — \(Fmt.rate(r)) ฿ per USDT\(age)."
+            if base == "USD" {
+                return "Using the venue's live bid — \(Fmt.rate(raw)) ฿ per USDT\(age)."
+            }
+            if let eff = model.liveRatesForCorridor[legID] {
+                return "Venue's live bid \(Fmt.rate(raw)) ฿/USDT ≈ \(Fmt.rate(eff)) ฿/\(baseSymbol) via the \(base)–USD mid\(age). The venue itself trades only USDT."
+            }
         }
         return "No fresh board data — assuming the pair trades at the mid-market rate."
     }
