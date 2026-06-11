@@ -19,7 +19,7 @@ struct MethodDetailView: View {
                             if leg?.rateSource == .quoted {
                                 Text(boothSourceText)
                                     .font(.caption2)
-                                    .foregroundStyle(.tertiary)
+                                    .foregroundStyle(.secondary)
                                     .padding(.top, 2)
                             }
                         }
@@ -86,13 +86,17 @@ struct MethodDetailView: View {
     }
 
     /// Whose rate is the headline using? quote > live best board > estimate.
+    /// The named booth is the directory winner (bestLiveID) — same rate-then-
+    /// catalog-order tie-break as the BEST RATES tag, so the two always agree.
     private var boothSourceText: String {
         if model.profile.boothQuote != nil {
             return "Using the board rate you entered — exact for that booth."
         }
-        if let best = model.boothRates.bestUsable, let r = best.usd100Buy {
+        if model.boothRates.isFreshEnoughForEngine,
+           let best = boothDisplays.first(where: { $0.live != nil }),
+           let r = best.live?.usd100Buy {
             let age = model.boothRates.ageText.map { ", updated \($0)" } ?? ""
-            return "Using today's best board rate — \(best.name), \(Fmt.rate(r)) ฿/$\(age)."
+            return "Using today's best board rate — \(best.info.name), \(Fmt.rate(r)) ฿/$\(age)."
         }
         return "Estimated — the typical margin at the chains below."
     }
@@ -111,7 +115,7 @@ struct MethodDetailView: View {
                     if let tag = tagQuality(for: d) { BoothQualityTag(quality: tag) }
                 }
                 Text(d.info.areas).font(.caption).foregroundStyle(.secondary)
-                if let n = d.info.note { Text(n).font(.caption2).foregroundStyle(.tertiary) }
+                if let n = d.info.note { Text(n).font(.caption2).foregroundStyle(.secondary) }
             }
             Spacer()
             if let r = d.live?.usd100Buy {
@@ -120,9 +124,9 @@ struct MethodDetailView: View {
                         .font(.system(size: 16, weight: .semibold)).monospacedDigit()
                         .foregroundStyle(d.id == bestLiveID ? Color.sage : .primary)
                     Text("฿/$ BOARD").font(.system(size: 8, weight: .semibold)).kerning(0.6)
-                        .foregroundStyle(.tertiary)
+                        .foregroundStyle(.secondary)
                     if let src = d.live?.source {
-                        Text(src).font(.system(size: 8)).foregroundStyle(.tertiary)
+                        Text(src).font(.system(size: 8)).foregroundStyle(.secondary)
                     }
                 }
             }
