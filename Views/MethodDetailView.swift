@@ -13,7 +13,7 @@ struct MethodDetailView: View {
                 List {
                     Section {
                         VStack(alignment: .leading, spacing: 4) {
-                            Text("ALL-IN COST").font(.system(size: 10.5, weight: .semibold)).kerning(1.4).foregroundStyle(.secondary)
+                            Text("TRUE COST").font(.system(size: 10.5, weight: .semibold)).kerning(1.4).foregroundStyle(.secondary)
                             Text(Fmt.baht(r.costThb)).font(.system(size: 36, weight: .semibold)).monospacedDigit()
                             Text(summary(r)).font(.footnote).monospacedDigit().foregroundStyle(.secondary)
                             if leg?.rateSource == .quoted {

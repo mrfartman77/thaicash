@@ -269,7 +269,7 @@ struct MethodRow: View {
                 Text(Fmt.baht(result.costThb))
                     .font(.system(size: 17, weight: .semibold)).monospacedDigit()
                     .foregroundStyle(costColor)
-                Text("ALL-IN").font(.system(size: 9, weight: .semibold)).kerning(0.8).foregroundStyle(.tertiary)
+                Text("TRUE COST").font(.system(size: 9, weight: .semibold)).kerning(0.8).foregroundStyle(.tertiary)
             }
             Image(systemName: "chevron.right").font(.caption.weight(.semibold)).foregroundStyle(.tertiary)
         }
