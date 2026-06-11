@@ -20,6 +20,7 @@ final class AppModel: ObservableObject {
     let rates = RateService()
     let catalog = CatalogService()
     let boothRates = BoothRatesService()
+    let cryptoRates = CryptoRatesService()
 
     @Published var profile = Profile.load()
     @Published var amountTHB: Decimal = 40_000
@@ -28,7 +29,8 @@ final class AppModel: ObservableObject {
 
     init() {
         // Forward child ObservableObject changes up so `results` recomputes and views refresh.
-        for child in [rates.objectWillChange, catalog.objectWillChange, boothRates.objectWillChange] {
+        for child in [rates.objectWillChange, catalog.objectWillChange,
+                      boothRates.objectWillChange, cryptoRates.objectWillChange] {
             child.sink { [weak self] _ in self?.objectWillChange.send() }.store(in: &bag)
         }
     }
@@ -37,6 +39,7 @@ final class AppModel: ObservableObject {
         await rates.loadAndRefreshIfNeeded()
         await catalog.refresh()
         await boothRates.refresh()
+        await cryptoRates.refresh()
     }
 
     /// Grouped, ranked results for the current amount + live rate + profile.
@@ -44,7 +47,8 @@ final class AppModel: ObservableObject {
         guard let rMid = rates.rate?.value else { return [:] }
         return Engine.compare(catalog: catalog.data, profile: profile,
                               targetThb: amountTHB, rMid: rMid,
-                              liveBoothRate: boothRates.bestLiveRate)
+                              liveBoothRate: boothRates.bestLiveRate,
+                              liveRates: cryptoRates.liveRates)
     }
     var groupsInOrder: [OutputGroup] { OutputGroup.allCases.sorted { $0.sortIndex < $1.sortIndex } }
     func result(id: String) -> MethodResult? { results.values.flatMap { $0 }.first { $0.id == id } }

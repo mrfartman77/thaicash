@@ -22,6 +22,12 @@ struct MethodDetailView: View {
                                     .foregroundStyle(.secondary)
                                     .padding(.top, 2)
                             }
+                            if leg?.group == .cryptoThb {
+                                Text(cryptoSourceText)
+                                    .font(.caption2)
+                                    .foregroundStyle(.secondary)
+                                    .padding(.top, 2)
+                            }
                         }
                         .padding(.vertical, 4)
                     }
@@ -115,6 +121,15 @@ struct MethodDetailView: View {
             return "Using today's best board rate — \(best.info.name), \(Fmt.rate(r)) ฿/$\(age)."
         }
         return "Estimated — the typical margin at the chains below."
+    }
+
+    /// Whose USDT/THB price is the headline using? live venue bid > mid assumption.
+    private var cryptoSourceText: String {
+        if let r = model.cryptoRates.liveRates[legID] {
+            let age = model.cryptoRates.ageText.map { ", updated \($0)" } ?? ""
+            return "Using the venue's live USDT/THB bid — \(Fmt.rate(r)) ฿/$\(age)."
+        }
+        return "No fresh board data — assuming the pair trades at the mid-market rate."
     }
 
     private var boothFooter: String {

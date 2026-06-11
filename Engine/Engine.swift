@@ -8,12 +8,13 @@ enum Engine {
                         profile: Profile,
                         targetThb: Decimal,
                         rMid: Decimal,
-                        liveBoothRate: Decimal? = nil) -> [OutputGroup: [MethodResult]] {
+                        liveBoothRate: Decimal? = nil,
+                        liveRates: [String: Decimal] = [:]) -> [OutputGroup: [MethodResult]] {
 
         var byGroup: [OutputGroup: [MethodResult]] = [:]
         for leg in catalog.legs {
             let result = evaluate(leg: leg, profile: profile, targetThb: targetThb, rMid: rMid,
-                                  liveBoothRate: liveBoothRate)
+                                  liveBoothRate: liveBoothRate, liveRates: liveRates)
             byGroup[leg.group, default: []].append(result)
         }
 
@@ -30,7 +31,8 @@ enum Engine {
                          profile: Profile,
                          targetThb: Decimal,
                          rMid: Decimal,
-                         liveBoothRate: Decimal? = nil) -> MethodResult {
+                         liveBoothRate: Decimal? = nil,
+                         liveRates: [String: Decimal] = [:]) -> MethodResult {
 
         // ---- number of withdrawals (cap-driven) ----
         let withdrawals: Int = {
@@ -64,7 +66,9 @@ enum Engine {
         var rApplied: Decimal
         switch leg.rateSource {
         case .midMarket:
-            rApplied = rMid
+            // A live measured rate for this leg (e.g. a venue's USDT/THB bid)
+            // beats the mid-rate assumption.
+            rApplied = liveRates[leg.id] ?? rMid
         case .quoted:
             // precedence: the user's typed quote > today's best scraped board > the estimate
             rApplied = profile.boothQuote

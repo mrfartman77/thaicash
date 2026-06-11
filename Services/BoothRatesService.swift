@@ -105,3 +105,96 @@ final class BoothRatesService: ObservableObject {
         return try JSONDecoder().decode(BoothRatesFeed.self, from: bytes)
     }
 }
+
+// MARK: - Crypto rates (USDT/THB bids from the licensed Thai venues)
+
+struct CryptoRateEntry: Codable, Identifiable {
+    var id: String              // matches the catalog leg id
+    var name: String
+    var ok: Bool
+    var thbPerUsdt: Decimal?    // sell-side bid — what a market sell receives
+    var fetchedAt: String?
+    var reason: String?
+}
+
+struct CryptoRatesFeed: Codable {
+    var version: Int
+    var updated: String         // ISO8601 UTC
+    var rates: [CryptoRateEntry]
+}
+
+/// Live USDT/THB bids, scraped hourly around the clock by the same
+/// thaicash-data Action as the booth boards. Identical pattern: cache-first,
+/// offline-safe; a stale or broken feed degrades to the mid-rate assumption.
+@MainActor
+final class CryptoRatesService: ObservableObject {
+    @Published private(set) var feed: CryptoRatesFeed?
+
+    static let maxSupportedVersion = 1
+    static let remoteURL = URL(string: "https://raw.githubusercontent.com/mrfartman77/thaicash-data/main/data/crypto-rates.json")!
+
+    /// Books move constantly, but what we model is the venue's premium vs mid,
+    /// which drifts slowly — same 24h trust gate as the booth boards.
+    static let engineMaxAge: TimeInterval = 24 * 3600
+
+    private static var cacheURL: URL {
+        let dir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+        return dir.appendingPathComponent("thaicash_crypto_rates.json")
+    }
+
+    init() { feed = Self.loadCached() }
+
+    func refresh() async {
+        guard let fresh = try? await fetch() else { return }          // offline → keep cache
+        guard fresh.version <= Self.maxSupportedVersion else { return }
+        feed = fresh
+        if let data = try? JSONEncoder().encode(fresh) {
+            try? data.write(to: Self.cacheURL)
+        }
+    }
+
+    // MARK: derived
+
+    var updatedDate: Date? {
+        guard let s = feed?.updated else { return nil }
+        return ISO8601DateFormatter().date(from: s)
+    }
+
+    var age: TimeInterval? {
+        updatedDate.map { Date().timeIntervalSince($0) }
+    }
+
+    var ageText: String? {
+        guard let age else { return nil }
+        if age < 3600 { return "just now" }
+        if age < 48 * 3600 { return "\(Int(age / 3600))h ago" }
+        return "\(Int(age / 86_400))d ago"
+    }
+
+    var isFreshEnoughForEngine: Bool {
+        guard let age else { return false }
+        return age < Self.engineMaxAge
+    }
+
+    /// Leg id → live bid, only when fresh enough to trust. Empty dict = the
+    /// engine quietly falls back to the mid-rate assumption.
+    var liveRates: [String: Decimal] {
+        guard isFreshEnoughForEngine, let rates = feed?.rates else { return [:] }
+        return Dictionary(uniqueKeysWithValues:
+            rates.compactMap { e in e.ok ? e.thbPerUsdt.map { (e.id, $0) } : nil })
+    }
+
+    // MARK: cache
+
+    private static func loadCached() -> CryptoRatesFeed? {
+        guard let d = try? Data(contentsOf: cacheURL) else { return nil }
+        return try? JSONDecoder().decode(CryptoRatesFeed.self, from: d)
+    }
+
+    private func fetch() async throws -> CryptoRatesFeed {
+        let (bytes, resp) = try await URLSession.shared.data(from: Self.remoteURL)
+        guard (resp as? HTTPURLResponse)?.statusCode == 200 else { throw URLError(.badServerResponse) }
+        return try JSONDecoder().decode(CryptoRatesFeed.self, from: bytes)
+    }
+}

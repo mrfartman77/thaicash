@@ -26,13 +26,15 @@ enum Fmt {
         let f = NumberFormatter(); f.numberStyle = .decimal; f.maximumFractionDigits = 0; return f
     }()
     static func num(_ d: Decimal) -> String { grouped.string(from: NSDecimalNumber(decimal: d)) ?? "0" }
-    static func baht(_ d: Decimal) -> String { "฿" + num(d) }
+    static func baht(_ d: Decimal) -> String { d < 0 ? "−฿" + num(-d) : "฿" + num(d) }
     static func usd(_ d: Decimal) -> String { "$" + num(d) }
     static func rate(_ d: Decimal) -> String {
         String(format: "%.2f", NSDecimalNumber(decimal: d).doubleValue)
     }
+    /// Signed: a live venue bid above mid makes a method BETTER than the rate.
     static func pct(_ d: Decimal) -> String {
-        "+" + String(format: "%.1f", NSDecimalNumber(decimal: d).doubleValue) + "%"
+        let v = NSDecimalNumber(decimal: d).doubleValue
+        return (v < 0 ? "−" : "+") + String(format: "%.1f", abs(v)) + "%"
     }
 }
 
