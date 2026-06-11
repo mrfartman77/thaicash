@@ -81,7 +81,7 @@ enum Engine {
             return MethodResult(id: leg.id, label: leg.label, group: leg.group,
                                 netThb: targetThb, usdCost: 0,
                                 effectiveRate: 0, costThb: 0, costVsMidPct: 0, withdrawals: withdrawals,
-                                lines: [], warnings: ["Rate unavailable"])
+                                lines: [], warnings: ["Rate unavailable"], speed: leg.speed)
         }
 
         // ---- fold fee components ----
@@ -165,7 +165,7 @@ enum Engine {
             id: leg.id, label: leg.label, group: leg.group,
             netThb: targetThb, usdCost: usdCost, effectiveRate: effectiveRate,
             costThb: costThb, costVsMidPct: costVsMidPct, withdrawals: withdrawals,
-            lines: lines, warnings: warnings
+            lines: lines, warnings: warnings, speed: leg.speed
         )
     }
 }

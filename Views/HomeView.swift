@@ -324,6 +324,7 @@ struct MethodRow: View {
         var s = subtitleTag.map { "\($0) · " } ?? "\(Fmt.rate(result.effectiveRate)) ฿/$ · "
         s += "\(Fmt.pct(result.costVsMidPct)) vs rate"
         if result.withdrawals > 1 { s += " · ×\(result.withdrawals)" }
+        if let t = result.speed { s += " · \(t)" }
         return s
     }
     private var costColor: Color {

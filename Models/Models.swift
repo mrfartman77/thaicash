@@ -117,6 +117,7 @@ struct Leg: Codable, Identifiable {
     var fees: [FeeComponent]
     var notes: String?
     var linkURL: String?               // official provider site — "Get started" row
+    var speed: String?                 // delivery time ("~4–6 days", "minutes") — nil = in-person/instant
 }
 
 /// Apple Maps deep links — Maps does "near me"/directions with ITS location
@@ -235,5 +236,6 @@ struct MethodResult: Identifiable {
     var withdrawals: Int
     var lines: [CostLine]       // itemized "where it goes", sums to costThb
     var warnings: [String]
+    var speed: String?          // delivery time, surfaced on rows + detail
     var isBest: Bool = false
 }
