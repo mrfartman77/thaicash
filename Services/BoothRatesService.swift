@@ -36,6 +36,9 @@ final class BoothRatesService: ObservableObject {
 
     private static var cacheURL: URL {
         let dir = FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+        // Application Support doesn't exist in a fresh container — without this
+        // the cache write fails silently and first-launch data is never kept.
+        try? FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
         return dir.appendingPathComponent("thaicash_booth_rates.json")
     }
 
