@@ -115,7 +115,7 @@ struct RootView: View {
     @ViewBuilder private func screenshotRoot(_ screen: String) -> some View {
         switch screen {
         case "detail":  NavigationStack { MethodDetailView(legID: ProcessInfo.processInfo.environment["UITEST_LEG"] ?? "wise_card_atm") }
-        case "atm":     NavigationStack { SubgroupDetailView(title: "ATM withdrawal", memberIDs: ["schwab_debit_atm", "wise_card_atm", "revolut_card_atm", "atm_debit", "cc_advance"]) }
+        case "atm":     NavigationStack { SubgroupDetailView(title: "ATM withdrawal", subgroupKey: "atm_cash", memberIDs: ["schwab_debit_atm", "wise_card_atm", "revolut_card_atm", "atm_debit", "cc_advance"]) }
         case "setup":   ProfileView()
         default:        mainTabs
         }

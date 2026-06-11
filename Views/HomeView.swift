@@ -262,9 +262,9 @@ struct GroupCard: View {
                 MethodRow(result: r, savings: r.isBest ? worstCost - r.costThb : nil)
             }
             .buttonStyle(.plain)
-        case .rollup(_, let label, let best, let memberIDs):
+        case .rollup(let key, let label, let best, let memberIDs):
             NavigationLink {
-                SubgroupDetailView(title: label, memberIDs: memberIDs)
+                SubgroupDetailView(title: label, subgroupKey: key, memberIDs: memberIDs)
             } label: {
                 MethodRow(result: best,
                           savings: best.isBest ? worstCost - best.costThb : nil,

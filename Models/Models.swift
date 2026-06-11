@@ -115,10 +115,20 @@ struct Leg: Codable, Identifiable {
     var notes: String?
 }
 
+/// Apple Maps deep links — Maps does "near me"/directions with ITS location
+/// permission, so the app itself never has to ask for location.
+enum MapsLink {
+    static func url(placeId: String?, query: String?) -> URL? {
+        if let pid = placeId {
+            return URL(string: "https://maps.apple.com/place?place-id=\(pid)")
+        }
+        guard let q = query?.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else { return nil }
+        return URL(string: "https://maps.apple.com/?q=\(q)")
+    }
+}
+
 /// A curated, well-known exchange chain. Lives in the remote catalog so the
-/// directory updates without an app release. Taps deep-link into Apple Maps —
-/// Maps does "near me"/directions with ITS location permission, so the app
-/// itself never has to ask for location.
+/// directory updates without an app release.
 struct BoothInfo: Codable, Identifiable {
     var id: String
     var name: String
@@ -128,13 +138,28 @@ struct BoothInfo: Codable, Identifiable {
     var mapsQuery: String?     // address-anchored search; nil = no map link
     var mapsPlaceId: String?   // exact Apple Maps place — beats any search query
 
-    var mapsURL: URL? {
-        if let pid = mapsPlaceId {
-            return URL(string: "https://maps.apple.com/place?place-id=\(pid)")
-        }
-        guard let q = mapsQuery?.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else { return nil }
-        return URL(string: "https://maps.apple.com/?q=\(q)")
-    }
+    var mapsURL: URL? { MapsLink.url(placeId: mapsPlaceId, query: mapsQuery) }
+}
+
+/// One operator in a subgroup's locator (e.g. ATM operators): who, where,
+/// what the machine charges. Data only — the fee figure does the ranking.
+struct DirectoryEntry: Codable, Identifiable {
+    var id: String
+    var name: String
+    var areas: String
+    var note: String?
+    var feeThb: Decimal?       // the machine's per-withdrawal surcharge
+    var mapsQuery: String?
+    var mapsPlaceId: String?
+
+    var mapsURL: URL? { MapsLink.url(placeId: mapsPlaceId, query: mapsQuery) }
+}
+
+/// A "find one" section for a rollup screen, keyed by `Leg.subgroup`.
+struct SubgroupDirectory: Codable {
+    var title: String
+    var footer: String?
+    var entries: [DirectoryEntry]
 }
 
 struct Catalog: Codable {
@@ -144,6 +169,7 @@ struct Catalog: Codable {
     var atmCapThb: Decimal
     var legs: [Leg]
     var booths: [BoothInfo]?           // optional: old cached catalogs still decode
+    var directories: [String: SubgroupDirectory]?   // subgroup key → locator section
 }
 
 // MARK: - Profile (local, persisted on every change)

@@ -160,6 +160,7 @@ struct MethodDetailView: View {
 struct SubgroupDetailView: View {
     @EnvironmentObject var model: AppModel
     let title: String
+    let subgroupKey: String
     let memberIDs: [String]
 
     private var members: [MethodResult] {
@@ -177,6 +178,10 @@ struct SubgroupDetailView: View {
             ?? "Same machine, different card — the card decides the cost."
     }
 
+    private var directory: SubgroupDirectory? {
+        model.catalog.data.directories?[subgroupKey]
+    }
+
     var body: some View {
         List {
             Section {
@@ -191,9 +196,59 @@ struct SubgroupDetailView: View {
             } footer: {
                 Text(footnote)
             }
+
+            if let dir = directory, !dir.entries.isEmpty {
+                Section {
+                    ForEach(dir.entries) { e in
+                        if let url = e.mapsURL {
+                            Link(destination: url) { directoryRow(e, in: dir) }
+                        } else {
+                            directoryRow(e, in: dir)
+                        }
+                    }
+                } header: {
+                    Text(dir.title)
+                } footer: {
+                    dir.footer.map(Text.init)
+                }
+            }
         }
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.inline)
+    }
+
+    private func directoryRow(_ e: DirectoryEntry, in dir: SubgroupDirectory) -> some View {
+        HStack(alignment: .center, spacing: 10) {
+            VStack(alignment: .leading, spacing: 3) {
+                Text(e.name).font(.subheadline).fontWeight(.medium)
+                Text(e.areas).font(.caption).foregroundStyle(.secondary)
+                if let n = e.note { Text(n).font(.caption2).foregroundStyle(.secondary) }
+            }
+            Spacer()
+            if let fee = e.feeThb {
+                VStack(alignment: .trailing, spacing: 1) {
+                    Text(Fmt.baht(fee))
+                        .font(.system(size: 16, weight: .semibold)).monospacedDigit()
+                        .foregroundStyle(feeColor(fee, in: dir))
+                    Text("FEE").font(.system(size: 8, weight: .semibold)).kerning(0.6)
+                        .foregroundStyle(.secondary)
+                }
+            }
+            if e.mapsURL != nil {
+                Image(systemName: "arrow.up.right.square")
+                    .foregroundStyle(Color.bahtGold).font(.subheadline)
+            }
+        }
+        .foregroundStyle(Color.primary)   // Link would tint hierarchical styles gold
+    }
+
+    /// Cheapest machine fee = green, the priciest = red, the rest neutral.
+    private func feeColor(_ fee: Decimal, in dir: SubgroupDirectory) -> Color {
+        let fees = dir.entries.compactMap(\.feeThb)
+        guard let lo = fees.min(), let hi = fees.max(), lo != hi else { return .primary }
+        if fee == lo { return .sage }
+        if fee == hi { return .lossRed }
+        return .primary
     }
 }
 
