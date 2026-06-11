@@ -24,7 +24,7 @@ final class CatalogSeedTests: XCTestCase {
                        "Seed schema and the app's schema guard must move together")
         XCTAssertFalse(c.catalogUpdated.isEmpty)
 
-        XCTAssertEqual(c.corridors.map(\.id), ["usd_thb", "eur_thb", "aud_thb", "usdt_thb"])
+        XCTAssertEqual(c.corridors.map(\.id), ["usd_thb", "eur_thb", "aud_thb", "cny_thb", "usdt_thb"])
         for cor in c.corridors {
             XCTAssertFalse(cor.base.isEmpty)
             XCTAssertFalse(cor.baseSymbol.isEmpty)
@@ -52,7 +52,18 @@ final class CatalogSeedTests: XCTestCase {
         XCTAssertTrue(aud.legs.contains { $0.id == "macquarie_atm" }, "AUD hero card missing")
         XCTAssertTrue(aud.legs.contains { $0.id == "instarem_transfer_bank" })
 
-        let usdt = c.corridors[3]
+        let cny = c.corridors[3]
+        XCTAssertTrue(cny.legs.contains { $0.id == "unionpay_atm" }, "CNY UnionPay rail missing")
+        XCTAssertTrue(cny.legs.contains { $0.id == "alipay_remit_bank" })
+        // AEON's ATM network is defunct — it must never reappear in a locator.
+        for cor in c.corridors {
+            for (_, dir) in cor.directories ?? [:] {
+                XCTAssertFalse(dir.entries.contains { $0.id == "aeon" },
+                               "\(cor.id): defunct AEON entry present")
+            }
+        }
+
+        let usdt = c.corridors[4]
         XCTAssertEqual(Set(usdt.legs.map(\.id)), ["binance_th_usdt", "bitkub_usdt", "bitazza_usdt"])
         XCTAssertTrue(usdt.legs.allSatisfy { $0.group == .cryptoThb })
 
@@ -92,7 +103,7 @@ final class CatalogSeedTests: XCTestCase {
     /// path. Mid rates roughly match each base so the math stays plausible.
     func testSeedComparesCleanly() throws {
         let c = try loadSeed()
-        let mids: [String: Decimal] = ["USD": 33, "EUR": 38, "AUD": 23, "USDT": 33]
+        let mids: [String: Decimal] = ["USD": 33, "EUR": 38, "AUD": 23, "CNY": 4.85, "USDT": 33]
 
         for cor in c.corridors {
             let rMid = try XCTUnwrap(mids[cor.base], "\(cor.id): no test mid for \(cor.base)")

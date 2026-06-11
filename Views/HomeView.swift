@@ -119,7 +119,7 @@ struct AmountCard: View {
     @State private var amountText: String = ""
 
     private let thbPresets: [Decimal] = [10_000, 20_000, 40_000, 60_000]
-    private let basePresets: [Decimal] = [100, 300, 500, 1_000]
+    private var basePresets: [Decimal] { corridor.basePresets ?? [100, 300, 500, 1_000] }
     private var rMid: Decimal { model.rates.rate(for: corridor.base)?.value ?? 0 }
 
     var body: some View {

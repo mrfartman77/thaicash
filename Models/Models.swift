@@ -184,6 +184,7 @@ struct Corridor: Codable, Identifiable, Hashable {
     var base: String                   // ISO code of the home currency ("USD")
     var baseSymbol: String             // "$", "€", "A$"
     var label: String                  // "USD → THB"
+    var basePresets: [Decimal]?        // amount-card presets in base units (nil = generic 100/300/500/1k)
     var legs: [Leg]
     var booths: [BoothInfo]?
     var directories: [String: SubgroupDirectory]?
