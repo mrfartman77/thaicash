@@ -93,7 +93,12 @@ struct DecimalRow: View {
                 .multilineTextAlignment(.trailing)
                 .keyboardType(.decimalPad)
                 .frame(width: 64)
-            if !suffix.isEmpty { Text(suffix).foregroundStyle(.secondary) }
+            if !suffix.isEmpty {
+                // Fixed slot so "%", "$" and "A$" all occupy the same width —
+                // the value column stays aligned whatever the home currency.
+                Text(suffix).foregroundStyle(.secondary)
+                    .frame(width: 26, alignment: .leading)
+            }
         }
     }
 
