@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		137AC61FA3D2BA499166EE26 /* ThaiCashApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 77F2179D728E938C20CD0649 /* ThaiCashApp.swift */; };
+		147E746F16CCB5C830A31F82 /* EngineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4A6CAED4E3455C0D0E5BB57B /* EngineTests.swift */; };
 		15E6D648C9DBC807881AA75A /* MethodDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE6ED9B36C1BCD2436660FAE /* MethodDetailView.swift */; };
 		1D9F96EED5534C278B22AD7C /* Engine.swift in Sources */ = {isa = PBXBuildFile; fileRef = 51A13374C4E9D745329956B2 /* Engine.swift */; };
 		29054D9CEA8DCC889D0B67E1 /* BoothRatesService.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA6AB51F0207EDD197665B50 /* BoothRatesService.swift */; };
@@ -18,17 +19,31 @@
 		94D70B2DE21D9744F1643492 /* catalog.json in Resources */ = {isa = PBXBuildFile; fileRef = DF2972E38EF67DD240FE2FF1 /* catalog.json */; };
 		97EE0D80DA9D31FDEC4A9893 /* ProfileView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 04DE5E3EAAB1285566E05BF9 /* ProfileView.swift */; };
 		9E52F828B5AB47B498E27AB2 /* HomeView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 1D021F332CE7D6C2707E1CE1 /* HomeView.swift */; };
+		E9B2B85D84C4F4A61DDBABD5 /* CatalogSeedTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6721803755A14D60F9F3652 /* CatalogSeedTests.swift */; };
 		FCEFB5EF95C650FBEC2A711A /* Models.swift in Sources */ = {isa = PBXBuildFile; fileRef = A2E3E2541CCFE3CA0938EC34 /* Models.swift */; };
 /* End PBXBuildFile section */
+
+/* Begin PBXContainerItemProxy section */
+		251F58F0B34A5DC6540CB235 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = A72C08AD294C36B3B37CB034 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = D4C0F886377D790293087B66;
+			remoteInfo = ThaiCash;
+		};
+/* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
 		04DE5E3EAAB1285566E05BF9 /* ProfileView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileView.swift; sourceTree = "<group>"; };
 		1D021F332CE7D6C2707E1CE1 /* HomeView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HomeView.swift; sourceTree = "<group>"; };
 		32EFFB1FE151D87D3FB29EDC /* CatalogService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogService.swift; sourceTree = "<group>"; };
 		46C0075DD26CB9ABB73AE9E3 /* RateService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RateService.swift; sourceTree = "<group>"; };
+		4A6CAED4E3455C0D0E5BB57B /* EngineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EngineTests.swift; sourceTree = "<group>"; };
 		51A13374C4E9D745329956B2 /* Engine.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Engine.swift; sourceTree = "<group>"; };
 		77F2179D728E938C20CD0649 /* ThaiCashApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ThaiCashApp.swift; sourceTree = "<group>"; };
 		A2E3E2541CCFE3CA0938EC34 /* Models.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Models.swift; sourceTree = "<group>"; };
+		A6721803755A14D60F9F3652 /* CatalogSeedTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CatalogSeedTests.swift; sourceTree = "<group>"; };
+		BE28AD0CD9C1F7F0D50E7649 /* ThaiCashTests.xctest */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.cfbundle; path = ThaiCashTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		C0054ECAA821845C6CECA96F /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		D16EE04858098F9D2578DDDD /* Components.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Components.swift; sourceTree = "<group>"; };
 		D6320E8DA6188C41E4506AAE /* ThaiCash.app */ = {isa = PBXFileReference; includeInIndex = 0; lastKnownFileType = wrapper.application; path = ThaiCash.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -61,6 +76,7 @@
 			isa = PBXGroup;
 			children = (
 				D6320E8DA6188C41E4506AAE /* ThaiCash.app */,
+				BE28AD0CD9C1F7F0D50E7649 /* ThaiCashTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -81,6 +97,7 @@
 				304E367E95BFBA6E536128FE /* Models */,
 				C109A7A383FAD1080D96C974 /* Resources */,
 				F25674F6788FC6553B50ACE3 /* Services */,
+				AFF09625ED648F7C6D1ABE83 /* Tests */,
 				5232D25FC4C696BC65C61052 /* Views */,
 				5ABCF74C6AC0199C7EE04808 /* Products */,
 			);
@@ -92,6 +109,15 @@
 				77F2179D728E938C20CD0649 /* ThaiCashApp.swift */,
 			);
 			path = App;
+			sourceTree = "<group>";
+		};
+		AFF09625ED648F7C6D1ABE83 /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				A6721803755A14D60F9F3652 /* CatalogSeedTests.swift */,
+				4A6CAED4E3455C0D0E5BB57B /* EngineTests.swift */,
+			);
+			path = Tests;
 			sourceTree = "<group>";
 		};
 		C109A7A383FAD1080D96C974 /* Resources */ = {
@@ -116,6 +142,24 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		1A03420104B7F1D1BA2E0EEC /* ThaiCashTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 1E838AE9E42D04CF795F53BF /* Build configuration list for PBXNativeTarget "ThaiCashTests" */;
+			buildPhases = (
+				9892F82480026B521EDF3CA3 /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				ED45E741FCBAF550FC6ADEA7 /* PBXTargetDependency */,
+			);
+			name = ThaiCashTests;
+			packageProductDependencies = (
+			);
+			productName = ThaiCashTests;
+			productReference = BE28AD0CD9C1F7F0D50E7649 /* ThaiCashTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		D4C0F886377D790293087B66 /* ThaiCash */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = E40B4E777DAC2EE9E85C45A6 /* Build configuration list for PBXNativeTarget "ThaiCash" */;
@@ -160,6 +204,7 @@
 			projectRoot = "";
 			targets = (
 				D4C0F886377D790293087B66 /* ThaiCash */,
+				1A03420104B7F1D1BA2E0EEC /* ThaiCashTests */,
 			);
 		};
 /* End PBXProject section */
@@ -194,9 +239,42 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
+		9892F82480026B521EDF3CA3 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				E9B2B85D84C4F4A61DDBABD5 /* CatalogSeedTests.swift in Sources */,
+				147E746F16CCB5C830A31F82 /* EngineTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 /* End PBXSourcesBuildPhase section */
 
+/* Begin PBXTargetDependency section */
+		ED45E741FCBAF550FC6ADEA7 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = D4C0F886377D790293087B66 /* ThaiCash */;
+			targetProxy = 251F58F0B34A5DC6540CB235 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
 /* Begin XCBuildConfiguration section */
+		54668ECE2B99CD4886720629 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.thaicash.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ThaiCash.app/ThaiCash";
+			};
+			name = Debug;
+		};
 		5A81CAF755FA9C4EBEEF5D67 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -358,9 +436,34 @@
 			};
 			name = Debug;
 		};
+		9BED6EEA6AF559CE1BA56CD0 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@loader_path/Frameworks",
+				);
+				PRODUCT_BUNDLE_IDENTIFIER = com.thaicash.tests;
+				SDKROOT = iphoneos;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/ThaiCash.app/ThaiCash";
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		1E838AE9E42D04CF795F53BF /* Build configuration list for PBXNativeTarget "ThaiCashTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				54668ECE2B99CD4886720629 /* Debug */,
+				9BED6EEA6AF559CE1BA56CD0 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
 		447FEA13BE758F1D20FAE809 /* Build configuration list for PBXProject "ThaiCash" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (

@@ -28,3 +28,24 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.thaicash.app
         ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+  ThaiCashTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources:
+      - Tests
+    dependencies:
+      - target: ThaiCash
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.thaicash.tests
+schemes:
+  ThaiCash:
+    build:
+      targets:
+        ThaiCash: all
+    run:
+      config: Debug
+    test:
+      config: Debug
+      targets:
+        - ThaiCashTests
