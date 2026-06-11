@@ -135,6 +135,10 @@ struct MethodDetailView: View {
                     .foregroundStyle(Color.bahtGold).font(.subheadline)
             }
         }
+        // Pin the row to label colors: Link tints its label gold, and
+        // hierarchical .primary/.secondary would inherit it. Explicit colors
+        // inside (gold arrow, sage rate, tags) still win.
+        .foregroundStyle(Color.primary)
     }
 
     /// Measured booths: only the winner gets a tag (the rate speaks for the rest).
