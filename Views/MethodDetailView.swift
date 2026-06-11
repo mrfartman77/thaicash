@@ -42,6 +42,22 @@ struct MethodDetailView: View {
                         }
                     }
 
+                    if let urlString = leg?.linkURL, let url = URL(string: urlString) {
+                        Section {
+                            Link(destination: url) {
+                                HStack {
+                                    Text(linkHost(urlString)).font(.subheadline).fontWeight(.medium)
+                                    Spacer()
+                                    Image(systemName: "arrow.up.right.square")
+                                        .foregroundStyle(Color.bahtGold).font(.subheadline)
+                                }
+                                .foregroundStyle(Color.primary)   // Link would tint the text gold
+                            }
+                        } header: {
+                            Text("Get started")
+                        }
+                    }
+
                     if !r.warnings.isEmpty {
                         Section {
                             ForEach(r.warnings, id: \.self) { w in
@@ -146,6 +162,14 @@ struct MethodDetailView: View {
     private func tagQuality(for d: BoothDisplay) -> String? {
         if d.live != nil { return d.id == bestLiveID ? "best" : nil }
         return d.info.quality == "avoid" ? "avoid" : "pending"
+    }
+
+    /// "https://www.schwab.com/checking" → "schwab.com/checking" — short, honest.
+    private func linkHost(_ urlString: String) -> String {
+        urlString
+            .replacingOccurrences(of: "https://", with: "")
+            .replacingOccurrences(of: "www.", with: "")
+            .trimmingCharacters(in: CharacterSet(charactersIn: "/"))
     }
 
     private func summary(_ r: MethodResult) -> String {

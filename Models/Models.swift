@@ -113,6 +113,7 @@ struct Leg: Codable, Identifiable {
     var interest: InterestModel?       // cash advance only
     var fees: [FeeComponent]
     var notes: String?
+    var linkURL: String?               // official provider site — "Get started" row
 }
 
 /// Apple Maps deep links — Maps does "near me"/directions with ITS location
