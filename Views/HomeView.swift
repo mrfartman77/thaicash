@@ -221,10 +221,18 @@ struct AmountCard: View {
     }
 }
 
+/// Tallest natural row height inside a card — every sibling stretches to match.
+private struct RowHeightKey: PreferenceKey {
+    static var defaultValue: CGFloat = 0
+    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) { value = max(value, nextValue()) }
+}
+
 struct GroupCard: View {
     let group: OutputGroup
     let results: [MethodResult]          // every leg — "the priciest" stays honest even when rows fold
     let rows: [AppModel.HomeRow]
+
+    @State private var rowMinHeight: CGFloat = 0
 
     private var worstCost: Decimal { results.map(\.costThb).max() ?? 0 }
 
@@ -235,8 +243,13 @@ struct GroupCard: View {
                 ForEach(Array(rows.enumerated()), id: \.element.id) { idx, row in
                     if idx > 0 { Divider().padding(.leading, 16) }
                     rowView(row)
+                        .background(GeometryReader { g in
+                            Color.clear.preference(key: RowHeightKey.self, value: g.size.height)
+                        })
+                        .frame(minHeight: rowMinHeight > 0 ? rowMinHeight : nil)
                 }
             }
+            .onPreferenceChange(RowHeightKey.self) { rowMinHeight = $0 }
         }
     }
 
