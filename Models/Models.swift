@@ -118,12 +118,16 @@ struct Leg: Codable, Identifiable {
 /// Apple Maps deep links — Maps does "near me"/directions with ITS location
 /// permission, so the app itself never has to ask for location.
 enum MapsLink {
-    static func url(placeId: String?, query: String?) -> URL? {
+    /// `near` ("lat,lng") anchors a category search (e.g. "Krungsri ATM") via
+    /// sll= — without it Maps searches near the USER, which abroad returns
+    /// hometown garbage instead of Thailand.
+    static func url(placeId: String?, query: String?, near: String? = nil) -> URL? {
         if let pid = placeId {
             return URL(string: "https://maps.apple.com/place?place-id=\(pid)")
         }
         guard let q = query?.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else { return nil }
-        return URL(string: "https://maps.apple.com/?q=\(q)")
+        let anchor = near.map { "&sll=\($0)&z=13" } ?? ""
+        return URL(string: "https://maps.apple.com/?q=\(q)\(anchor)")
     }
 }
 
@@ -151,8 +155,9 @@ struct DirectoryEntry: Codable, Identifiable {
     var feeThb: Decimal?       // the machine's per-withdrawal surcharge
     var mapsQuery: String?
     var mapsPlaceId: String?
+    var mapsNear: String?      // "lat,lng" search anchor for category queries
 
-    var mapsURL: URL? { MapsLink.url(placeId: mapsPlaceId, query: mapsQuery) }
+    var mapsURL: URL? { MapsLink.url(placeId: mapsPlaceId, query: mapsQuery, near: mapsNear) }
 }
 
 /// A "find one" section for a rollup screen, keyed by `Leg.subgroup`.
