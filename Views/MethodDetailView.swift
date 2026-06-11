@@ -175,7 +175,7 @@ struct MethodDetailView: View {
     private func summary(_ r: MethodResult) -> String {
         var s = "\(Fmt.rate(r.effectiveRate)) ฿/$ · \(Fmt.pct(r.costVsMidPct)) vs rate"
         if r.withdrawals > 1 { s += " · \(r.withdrawals) withdrawals" }
-        if let t = r.speed { s += " · arrives in \(t)" }
+        if let t = r.speed { s += " · arrives \(t)" }
         return s
     }
 }

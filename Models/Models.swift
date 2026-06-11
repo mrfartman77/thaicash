@@ -10,16 +10,17 @@ enum OutputGroup: String, Codable, CaseIterable, Hashable {
     var title: String {
         switch self {
         case .cashInHand: return "Get cash"
-        case .thbInBank:  return "To Thai bank"
+        case .thbInBank:  return "Bank → Thai bank"
         case .cryptoThb:  return "Crypto → Thai bank"
         }
     }
-    /// Display order on the home screen — cash first (the hero, and free).
+    /// Display order on the home screen — cash first (the hero, and free),
+    /// then crypto (near-instant beats the multi-day bank rails).
     var sortIndex: Int {
         switch self {
         case .cashInHand: return 0
-        case .thbInBank:  return 1
-        case .cryptoThb:  return 2
+        case .cryptoThb:  return 1
+        case .thbInBank:  return 2
         }
     }
 }
