@@ -13,7 +13,8 @@ struct HomeView: View {
                     AmountCard()
                     ForEach(model.groupsInOrder, id: \.self) { group in
                         if let results = grouped[group], !results.isEmpty {
-                            GroupCard(group: group, results: results)
+                            GroupCard(group: group, results: results,
+                                      rows: model.homeRows(for: group))
                         }
                     }
                 }
@@ -222,7 +223,8 @@ struct AmountCard: View {
 
 struct GroupCard: View {
     let group: OutputGroup
-    let results: [MethodResult]
+    let results: [MethodResult]          // every leg — "the priciest" stays honest even when rows fold
+    let rows: [AppModel.HomeRow]
 
     private var worstCost: Decimal { results.map(\.costThb).max() ?? 0 }
 
@@ -230,16 +232,33 @@ struct GroupCard: View {
         VStack(alignment: .leading, spacing: 0) {
             SectionLabel(text: group.title)
             Card {
-                ForEach(Array(results.enumerated()), id: \.element.id) { idx, r in
+                ForEach(Array(rows.enumerated()), id: \.element.id) { idx, row in
                     if idx > 0 { Divider().padding(.leading, 16) }
-                    NavigationLink {
-                        MethodDetailView(legID: r.id)
-                    } label: {
-                        MethodRow(result: r, savings: r.isBest ? worstCost - r.costThb : nil)
-                    }
-                    .buttonStyle(.plain)
+                    rowView(row)
                 }
             }
+        }
+    }
+
+    @ViewBuilder private func rowView(_ row: AppModel.HomeRow) -> some View {
+        switch row {
+        case .method(let r):
+            NavigationLink {
+                MethodDetailView(legID: r.id)
+            } label: {
+                MethodRow(result: r, savings: r.isBest ? worstCost - r.costThb : nil)
+            }
+            .buttonStyle(.plain)
+        case .rollup(_, let label, let best, let memberIDs):
+            NavigationLink {
+                SubgroupDetailView(title: label, memberIDs: memberIDs)
+            } label: {
+                MethodRow(result: best,
+                          savings: best.isBest ? worstCost - best.costThb : nil,
+                          titleOverride: label,
+                          subtitleTag: best.label.components(separatedBy: " · ").first)
+            }
+            .buttonStyle(.plain)
         }
     }
 }
@@ -247,12 +266,14 @@ struct GroupCard: View {
 struct MethodRow: View {
     let result: MethodResult
     var savings: Decimal? = nil
+    var titleOverride: String? = nil    // rollup rows show the subgroup label…
+    var subtitleTag: String? = nil      // …and name the winning member up front
 
     var body: some View {
         HStack(alignment: .top, spacing: 10) {
             VStack(alignment: .leading, spacing: 4) {
                 HStack(spacing: 8) {
-                    Text(result.label).font(.system(size: 15.5, weight: .medium)).foregroundStyle(.primary)
+                    Text(titleOverride ?? result.label).font(.system(size: 15.5, weight: .medium)).foregroundStyle(.primary)
                     if result.isBest { BestBadge() }
                 }
                 Text(subtitle).font(.footnote).monospacedDigit().foregroundStyle(.secondary)
@@ -278,7 +299,10 @@ struct MethodRow: View {
     }
 
     private var subtitle: String {
-        var s = "\(Fmt.rate(result.effectiveRate)) ฿/$ · \(Fmt.pct(result.costVsMidPct)) vs rate"
+        // Rollup rows name the winning member instead of the ฿/$ figure —
+        // the exact rate lives one tap deeper, and both don't fit one line.
+        var s = subtitleTag.map { "\($0) · " } ?? "\(Fmt.rate(result.effectiveRate)) ฿/$ · "
+        s += "\(Fmt.pct(result.costVsMidPct)) vs rate"
         if result.withdrawals > 1 { s += " · ×\(result.withdrawals)" }
         return s
     }

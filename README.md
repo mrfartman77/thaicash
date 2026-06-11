@@ -4,10 +4,10 @@ On-device iOS app that shows the **real, all-in cost of converting USD → THB**
 
 ## What it does
 Enter the baht you need ("I need ฿40,000" — or enter dollars and it converts at the live rate) and see every method ranked by all-in cost, inside output groups that aren't interchangeable:
-- **Cash in hand** — exchange booth, debit-card ATM, credit-card cash advance, multi-currency card (Wise/Revolut) at an ATM
+- **Cash in hand** — exchange booth, or an ATM withdrawal (Wise/Revolut card vs debit card vs credit-card cash advance — one Home row, ranked by card inside)
 - **THB in your bank** — Wise / Remitly / … transfers
 
-Each method opens into a baht-by-baht "where it goes" breakdown with live adjustments (DCC accepted, funding source, payoff days). A 7-day rate chart sits on top. Your setup (your bank's fees, card terms, booth margin, days in Thailand) persists locally.
+Each method opens into a detail screen — the booth's carries a live directory of Bangkok's best-known chains with today's scraped board rates and Apple Maps links. A 7-day rate chart sits on top. Your setup (your bank's fees, card terms, days in Thailand) persists locally.
 
 ## Architecture
 - **Pure engine** (`Engine/`) — `Engine.compare()` takes catalog + profile + target amount + live rate → grouped, ranked `MethodResult`s. No I/O, fully unit-testable.

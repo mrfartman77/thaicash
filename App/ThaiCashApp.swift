@@ -49,6 +49,36 @@ final class AppModel: ObservableObject {
     var groupsInOrder: [OutputGroup] { OutputGroup.allCases.sorted { $0.sortIndex < $1.sortIndex } }
     func result(id: String) -> MethodResult? { results.values.flatMap { $0 }.first { $0.id == id } }
 
+    /// One Home row per leg — except legs sharing a catalog `subgroup`, which
+    /// collapse into a single rollup row represented by their cheapest member
+    /// (e.g. the three ATM cards). Rows keep the group's cheapest-first order.
+    enum HomeRow: Identifiable {
+        case method(MethodResult)
+        case rollup(key: String, label: String, best: MethodResult, memberIDs: [String])
+        var id: String {
+            switch self {
+            case .method(let r):            return r.id
+            case .rollup(let key, _, _, _): return "subgroup_\(key)"
+            }
+        }
+    }
+
+    func homeRows(for group: OutputGroup) -> [HomeRow] {
+        let rs = results[group] ?? []
+        let legByID = Dictionary(uniqueKeysWithValues: catalog.data.legs.map { ($0.id, $0) })
+        var rows: [HomeRow] = []
+        var seen = Set<String>()
+        for r in rs {
+            guard let sg = legByID[r.id]?.subgroup else { rows.append(.method(r)); continue }
+            guard seen.insert(sg).inserted else { continue }   // later members fold into the first
+            let members = rs.filter { legByID[$0.id]?.subgroup == sg }
+            guard members.count > 1 else { rows.append(.method(r)); continue }
+            let label = members.compactMap { legByID[$0.id]?.subgroupLabel }.first ?? "ATM withdrawal"
+            rows.append(.rollup(key: sg, label: label, best: r, memberIDs: members.map(\.id)))
+        }
+        return rows
+    }
+
     /// Every profile write funnels here and persists immediately.
     func update(_ mutate: (inout Profile) -> Void) {
         mutate(&profile)
@@ -85,6 +115,7 @@ struct RootView: View {
     @ViewBuilder private func screenshotRoot(_ screen: String) -> some View {
         switch screen {
         case "detail":  NavigationStack { MethodDetailView(legID: ProcessInfo.processInfo.environment["UITEST_LEG"] ?? "wise_card_atm") }
+        case "atm":     NavigationStack { SubgroupDetailView(title: "ATM withdrawal", memberIDs: ["wise_card_atm", "atm_debit", "cc_advance"]) }
         case "setup":   ProfileView()
         default:        mainTabs
         }

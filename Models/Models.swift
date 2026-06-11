@@ -97,6 +97,8 @@ struct Leg: Codable, Identifiable {
     var id: String
     var label: String
     var group: OutputGroup
+    var subgroup: String?              // legs sharing a key collapse into one Home row…
+    var subgroupLabel: String?         // …shown under this label (e.g. "ATM withdrawal")
     var rateSource: RateSource
     var fxMarginPct: Decimal?          // for .midMarketMargin
     var typicalBoothMargin: Decimal?   // planning fallback for .quoted
@@ -136,7 +138,7 @@ struct BoothInfo: Codable, Identifiable {
 
 struct Catalog: Codable {
     var schemaVersion: Int
-    var catalogUpdated: String         // "yyyy-MM-dd" — lexicographic compare works
+    var catalogUpdated: String         // ISO date or datetime (UTC) — lexicographic compare works
     var atmHostFeeThb: Decimal
     var atmCapThb: Decimal
     var legs: [Leg]

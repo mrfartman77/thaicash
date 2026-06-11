@@ -151,6 +151,50 @@ struct MethodDetailView: View {
     }
 }
 
+/// Rollup detail — the legs that share one Home row (e.g. the three ATM
+/// cards), re-ranked live for the current amount; each opens its own detail.
+struct SubgroupDetailView: View {
+    @EnvironmentObject var model: AppModel
+    let title: String
+    let memberIDs: [String]
+
+    private var members: [MethodResult] {
+        var ms = memberIDs.compactMap { model.result(id: $0) }
+                          .sorted { $0.effectiveRate > $1.effectiveRate }
+        for i in ms.indices { ms[i].isBest = (i == 0) }   // best within this screen
+        return ms
+    }
+    private var worstCost: Decimal { members.map(\.costThb).max() ?? 0 }
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 10) {
+                Card {
+                    ForEach(Array(members.enumerated()), id: \.element.id) { idx, r in
+                        if idx > 0 { Divider().padding(.leading, 16) }
+                        NavigationLink {
+                            MethodDetailView(legID: r.id)
+                        } label: {
+                            MethodRow(result: r, savings: r.isBest ? worstCost - r.costThb : nil)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+                Text("Same machine, different card — the card decides the cost.")
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+                    .padding(.leading, 18)
+            }
+            .padding(.horizontal, 16)
+            .padding(.top, 8)
+            .padding(.bottom, 96)
+        }
+        .background(Color.appBackground)
+        .navigationTitle(title)
+        .navigationBarTitleDisplayMode(.inline)
+    }
+}
+
 /// Quality tag for the booth directory (BEST RATES / GOOD / AVOID).
 struct BoothQualityTag: View {
     let quality: String
