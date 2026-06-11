@@ -214,9 +214,25 @@ struct CorridorListView: View {
     }
 
     private func corridorRow(_ c: Corridor) -> some View {
-        HStack(spacing: 10) {
+        HStack(spacing: 11) {
+            // Gilded monogram — the corridor's symbol in a hairline gold ring,
+            // echoing the ฿ emblem up top.
+            Text(c.baseSymbol)
+                .font(.system(size: 14, weight: .semibold))
+                .foregroundStyle(Color.bahtGold)
+                .frame(width: 30, height: 30)
+                .overlay(Circle().strokeBorder(
+                    LinearGradient(colors: [.cardBorderTop, .cardBorderBottom],
+                                   startPoint: .top, endPoint: .bottom),
+                    lineWidth: 1))
             VStack(alignment: .leading, spacing: 3) {
-                Text(c.label).font(.system(size: 16, weight: .medium))
+                HStack(spacing: 6) {
+                    Text(c.base).font(.system(size: 16, weight: .medium))
+                    Image(systemName: "arrow.right")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundStyle(Color.bahtGold)
+                    Text("THB").font(.system(size: 16, weight: .medium))
+                }
                 Text(freshnessCaption(c))
                     .font(.caption)
                     .foregroundStyle(captionColor(c))
