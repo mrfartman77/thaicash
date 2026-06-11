@@ -8,7 +8,7 @@ final class CatalogService: ObservableObject {
     @Published private(set) var data: Catalog
     @Published private(set) var needsAppUpdate = false
 
-    static let maxSupportedSchema = 3
+    static let maxSupportedSchema = 4   // 4: crypto_thb_bank output group
     static let remoteURL = URL(string: "https://raw.githubusercontent.com/mrfartman77/thaicash-data/main/catalog.json")!
 
     private static var cacheURL: URL {

@@ -5,11 +5,13 @@ import Foundation
 enum OutputGroup: String, Codable, CaseIterable, Hashable {
     case cashInHand = "cash_in_hand"
     case thbInBank  = "thb_in_bank"
+    case cryptoThb  = "crypto_thb_bank"
 
     var title: String {
         switch self {
         case .cashInHand: return "Get cash"
         case .thbInBank:  return "To Thai bank"
+        case .cryptoThb:  return "Crypto → Thai bank"
         }
     }
     /// Display order on the home screen — cash first (the hero, and free).
@@ -17,6 +19,7 @@ enum OutputGroup: String, Codable, CaseIterable, Hashable {
         switch self {
         case .cashInHand: return 0
         case .thbInBank:  return 1
+        case .cryptoThb:  return 2
         }
     }
 }
