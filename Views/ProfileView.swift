@@ -9,7 +9,7 @@ struct ProfileView: View {
                 Section("Your bank & cards") {
                     DecimalRow(title: "Foreign-txn fee", suffix: "%", key: "bank_ftf", defaultValue: 0.03, scale: 100)
                     DecimalRow(title: "Your bank's ATM fee", prefix: "$", key: "bank_atm_fee", defaultValue: 5, scale: 1)
-                    DecimalRow(title: "Cash-advance fee", suffix: "%", key: "ca_fee", defaultValue: 0.04, scale: 100)
+                    DecimalRow(title: "Cash-advance fee", suffix: "%", key: "ca_fee", defaultValue: 0.05, scale: 100)
                 }
 
                 Section("Transfers") {
