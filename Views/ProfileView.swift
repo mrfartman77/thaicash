@@ -3,41 +3,73 @@ import SwiftUI
 struct ProfileView: View {
     @EnvironmentObject var model: AppModel
 
+    private var homeBase: String { model.profile.homeBase ?? "USD" }
+    private var homeCorridor: Corridor? {
+        model.corridors.first { $0.base == homeBase } ?? model.corridors.first
+    }
+    private var symbol: String { homeCorridor?.baseSymbol ?? "$" }
+
+    /// The engine's stored default for a profile key in the home corridor —
+    /// what every comparison uses until the user overrides it here.
+    private func catalogDefault(_ key: String) -> Decimal? {
+        for leg in homeCorridor?.legs ?? [] {
+            for fee in leg.fees where fee.profileKey == key {
+                return fee.value
+            }
+        }
+        return nil
+    }
+
     var body: some View {
         NavigationStack {
             Form {
-                Section("Your bank & cards") {
-                    DecimalRow(title: "Foreign-txn fee", suffix: "%", key: "bank_ftf", defaultValue: 0.03, scale: 100)
-                    DecimalRow(title: "Your bank's ATM fee", prefix: "$", key: "bank_atm_fee", defaultValue: 5, scale: 1)
-                    DecimalRow(title: "Cash-advance fee", suffix: "%", key: "ca_fee", defaultValue: 0.05, scale: 100)
-                }
-
-                Section("Transfers") {
-                    Picker("Funding source", selection: fundingBinding) {
-                        ForEach(FundingSource.allCases, id: \.self) { Text($0.label).tag($0) }
+                Section {
+                    Picker("Home currency", selection: homeBinding) {
+                        ForEach(model.corridors.filter { $0.base != "USDT" }) { c in
+                            Text(c.base).tag(c.base)
+                        }
                     }
+                    .pickerStyle(.segmented)
+                } header: {
+                    Text("Home currency")
+                } footer: {
+                    Text("Sets the defaults below to your region's typical bank, verified per corridor.")
                 }
 
                 Section {
-                    Stepper("Days in Thailand / yr: \(model.profile.daysInThailand)",
-                            value: daysBinding, in: 0...365, step: 5)
+                    DecimalRow(title: "Foreign-txn fee", suffix: "%", key: "bank_ftf",
+                               defaultValue: catalogDefault("bank_ftf") ?? 0.03, scale: 100)
+                    DecimalRow(title: "Your bank's ATM fee", prefix: symbol, key: "bank_atm_fee",
+                               defaultValue: catalogDefault("bank_atm_fee") ?? 5, scale: 1)
+                    DecimalRow(title: "Cash-advance fee", suffix: "%", key: "ca_fee",
+                               defaultValue: catalogDefault("ca_fee") ?? 0.05, scale: 100)
                 } header: {
-                    Text("Trip")
+                    Text("Your bank & cards")
                 } footer: {
-                    Text("180+ days makes you a tax resident — money sent to a Thai bank may become taxable.")
+                    Text("Until you edit them, the \"Your debit/credit card\" rows use these typical-\(homeBase) defaults. Enter your own card's numbers and every comparison becomes exact.")
+                }
+
+                Section {
+                    Picker("Funding source", selection: fundingBinding) {
+                        ForEach(FundingSource.allCases, id: \.self) { Text($0.label).tag($0) }
+                    }
+                } header: {
+                    Text("Transfers")
+                } footer: {
+                    Text("How you pay the transfer provider — card funding costs more than a bank debit.")
                 }
             }
             .navigationTitle("Setup")
         }
     }
 
+    private var homeBinding: Binding<String> {
+        Binding(get: { model.profile.homeBase ?? "USD" },
+                set: { v in model.update { $0.homeBase = v } })
+    }
     private var fundingBinding: Binding<FundingSource> {
         Binding(get: { model.profile.fundingSource },
                 set: { v in model.update { $0.fundingSource = v } })
-    }
-    private var daysBinding: Binding<Int> {
-        Binding(get: { model.profile.daysInThailand },
-                set: { v in model.update { $0.daysInThailand = v } })
     }
 }
 

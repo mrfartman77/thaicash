@@ -205,6 +205,7 @@ struct Toggles: Codable, Equatable {
 
 struct Profile: Codable, Equatable {
     var overrides: [String: Decimal] = [:]   // profileKey -> user value (else catalog default)
+    var homeBase: String? = nil              // "USD"/"EUR"/"AUD" — drives Setup defaults/symbol
     var boothQuote: Decimal? = nil           // the rate the booth quoted (overrides typical margin)
     var boothMarginOffMid: Decimal = 0.005   // planning default when no quote entered
     var fundingSource: FundingSource = .bankACH
