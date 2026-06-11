@@ -64,6 +64,8 @@ struct FrankfurterProvider: RateProvider {
 
 /// THB mid rates per base currency (USD, EUR, AUD, …) — one cache, one 7-day
 /// history series each. Corridors load lazily; everything stays offline-safe.
+/// USDT aliases to USD: tether's fair THB value is the USD mid (±~0.1%), the
+/// FX APIs don't quote stablecoins, and the alias shares the USD cache.
 @MainActor
 final class RateService: ObservableObject {
     @Published private(set) var rates: [String: Rate] = [:]
@@ -71,22 +73,26 @@ final class RateService: ObservableObject {
 
     private let providers: [RateProvider] = [OpenErApiProvider(), FrankfurterProvider()] // primary → fallback
 
-    func rate(for base: String) -> Rate? { rates[base] }
-    func history(for base: String) -> [RatePoint] { histories[base] ?? [] }
+    private func fiat(_ base: String) -> String { base == "USDT" ? "USD" : base }
+
+    func rate(for base: String) -> Rate? { rates[fiat(base)] }
+    func history(for base: String) -> [RatePoint] { histories[fiat(base)] ?? [] }
 
     func freshness(for base: String) -> Freshness {
-        guard let r = rates[base] else { return .none }
+        guard let r = rates[fiat(base)] else { return .none }
         let days = Int(Date().timeIntervalSince(r.asOf) / 86_400)
         return days <= 1 ? .fresh : .stale(days: days)
     }
 
     func loadAndRefreshIfNeeded(base: String) async {
+        let base = fiat(base)
         if rates[base] == nil { rates[base] = readCache(base) }   // last-known instantly
         if shouldRefresh(base) { await refresh(base: base) }
         else if histories[base]?.isEmpty != false { await loadHistory(base: base) }
     }
 
     func refresh(base: String) async {
+        let base = fiat(base)
         for provider in providers {
             if let r = try? await provider.fetch(base: base) {
                 rates[base] = r; writeCache(r, base: base); break
@@ -96,6 +102,7 @@ final class RateService: ObservableObject {
     }
 
     func loadHistory(base: String) async {
+        let base = fiat(base)
         if let series = try? await fetchHistory(base: base), !series.isEmpty {
             histories[base] = series
         }

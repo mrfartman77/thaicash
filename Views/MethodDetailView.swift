@@ -131,7 +131,7 @@ struct MethodDetailView: View {
     private var cryptoSourceText: String {
         if let raw = model.cryptoRates.liveRates[legID] {
             let age = model.cryptoRates.ageText.map { ", updated \($0)" } ?? ""
-            if base == "USD" {
+            if base == "USD" || base == "USDT" {
                 return "Using the venue's live bid — \(Fmt.rate(raw)) ฿ per USDT\(age)."
             }
             if let eff = model.liveRatesForCorridor[legID] {
