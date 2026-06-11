@@ -99,6 +99,7 @@ struct Leg: Codable, Identifiable {
     var group: OutputGroup
     var subgroup: String?              // legs sharing a key collapse into one Home row…
     var subgroupLabel: String?         // …shown under this label (e.g. "ATM withdrawal")
+    var subgroupNote: String?          // footer line on the rollup screen (remote-updatable)
     var rateSource: RateSource
     var fxMarginPct: Decimal?          // for .midMarketMargin
     var typicalBoothMargin: Decimal?   // planning fallback for .quoted

@@ -166,6 +166,13 @@ struct SubgroupDetailView: View {
     }
     private var worstCost: Decimal { members.map(\.costThb).max() ?? 0 }
 
+    /// Catalog-supplied footer (any member's), so the copy updates remotely.
+    private var footnote: String {
+        let legs = model.catalog.data.legs
+        return memberIDs.compactMap { id in legs.first { $0.id == id }?.subgroupNote }.first
+            ?? "Same machine, different card — the card decides the cost."
+    }
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 10) {
@@ -180,7 +187,7 @@ struct SubgroupDetailView: View {
                         .buttonStyle(.plain)
                     }
                 }
-                Text("Same machine, different card — the card decides the cost.")
+                Text(footnote)
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .padding(.leading, 18)
