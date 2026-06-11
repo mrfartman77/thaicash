@@ -13,6 +13,9 @@ settings:
     TARGETED_DEVICE_FAMILY: "1"
     INFOPLIST_KEY_UILaunchScreen_Generation: "YES"
     INFOPLIST_KEY_CFBundleDisplayName: "ThaiCash"
+    # Only standard HTTPS — skips the export-compliance dialog on every upload.
+    INFOPLIST_KEY_ITSAppUsesNonExemptEncryption: "NO"
+    INFOPLIST_KEY_UISupportedInterfaceOrientations: "UIInterfaceOrientationPortrait"
 targets:
   ThaiCash:
     type: application
