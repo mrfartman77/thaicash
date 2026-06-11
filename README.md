@@ -1,6 +1,6 @@
 # ThaiCash
 
-On-device iOS app that shows the **real, all-in cost of converting USD → THB** across every method, normalized to net baht received, so you can pick the cheapest option for your situation. Thailand-specific. **Fully free — no accounts, no subscriptions, no in-app purchases.**
+On-device iOS app that shows the **real, all-in cost of converting USD, EUR or AUD → THB** across every method, normalized to net baht received, so you can pick the cheapest option for your situation. Thailand-specific. **Fully free — no accounts, no subscriptions, no in-app purchases.**
 
 ## What it does
 Enter the baht you need ("I need ฿40,000" — or enter dollars and it converts at the live rate) and see every method ranked by all-in cost, inside output groups that aren't interchangeable:

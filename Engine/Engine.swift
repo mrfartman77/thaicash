@@ -4,7 +4,7 @@ import Foundation
 /// given the baht you want, compute the all-in USD cost per method.
 enum Engine {
 
-    static func compare(catalog: Catalog,
+    static func compare(legs: [Leg],
                         profile: Profile,
                         targetThb: Decimal,
                         rMid: Decimal,
@@ -12,7 +12,7 @@ enum Engine {
                         liveRates: [String: Decimal] = [:]) -> [OutputGroup: [MethodResult]] {
 
         var byGroup: [OutputGroup: [MethodResult]] = [:]
-        for leg in catalog.legs {
+        for leg in legs {
             let result = evaluate(leg: leg, profile: profile, targetThb: targetThb, rMid: rMid,
                                   liveBoothRate: liveBoothRate, liveRates: liveRates)
             byGroup[leg.group, default: []].append(result)

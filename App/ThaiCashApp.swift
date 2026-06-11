@@ -24,6 +24,7 @@ final class AppModel: ObservableObject {
 
     @Published var profile = Profile.load()
     @Published var amountTHB: Decimal = 40_000
+    @Published var corridorID: String = "usd_thb"
 
     private var bag = Set<AnyCancellable>()
 
@@ -35,20 +36,49 @@ final class AppModel: ObservableObject {
         }
     }
 
-    func boot() async {
-        await rates.loadAndRefreshIfNeeded()
-        await catalog.refresh()
-        await boothRates.refresh()
-        await cryptoRates.refresh()
+    // MARK: corridors
+
+    var corridors: [Corridor] { catalog.data.corridors }
+    var corridor: Corridor? { corridors.first { $0.id == corridorID } ?? corridors.first }
+
+    func select(_ c: Corridor) {
+        corridorID = c.id
+        Task { await rates.loadAndRefreshIfNeeded(base: c.base) }
     }
 
-    /// Grouped, ranked results for the current amount + live rate + profile.
+    func boot() async {
+        await catalog.refresh()
+        await rates.loadAndRefreshIfNeeded(base: corridor?.base ?? "USD")
+        await boothRates.refresh()
+        await cryptoRates.refresh()
+        for c in corridors where rates.rate(for: c.base) == nil {   // menu teaser mids
+            await rates.loadAndRefreshIfNeeded(base: c.base)
+        }
+    }
+
+    /// THB per 1 unit of the selected corridor's base currency.
+    var rMid: Decimal? { corridor.flatMap { rates.rate(for: $0.base)?.value } }
+
+    /// Crypto venue bids are THB-per-USDT. For non-USD corridors, convert to
+    /// THB-per-base via the mid cross (1 base ≈ baseMid/usdMid USDT, USDT≈$1)
+    /// so every corridor compares apples to apples.
+    private var liveRatesForCorridor: [String: Decimal] {
+        let raw = cryptoRates.liveRates
+        guard !raw.isEmpty, let c = corridor else { return [:] }
+        if c.base == "USD" { return raw }
+        guard let baseMid = rates.rate(for: c.base)?.value,
+              let usdMid = rates.rate(for: "USD")?.value, usdMid > 0 else { return [:] }
+        let cross = baseMid / usdMid
+        return raw.mapValues { $0 * cross }
+    }
+
+    /// Grouped, ranked results for the current corridor + amount + profile.
     var results: [OutputGroup: [MethodResult]] {
-        guard let rMid = rates.rate?.value else { return [:] }
-        return Engine.compare(catalog: catalog.data, profile: profile,
+        guard let c = corridor, let rMid else { return [:] }
+        return Engine.compare(legs: c.legs, profile: profile,
                               targetThb: amountTHB, rMid: rMid,
-                              liveBoothRate: boothRates.bestLiveRate,
-                              liveRates: cryptoRates.liveRates)
+                              liveBoothRate: boothRates.bestLiveRate(base: c.base),
+                              liveRates: liveRatesForCorridor)
     }
     var groupsInOrder: [OutputGroup] { OutputGroup.allCases.sorted { $0.sortIndex < $1.sortIndex } }
     func result(id: String) -> MethodResult? { results.values.flatMap { $0 }.first { $0.id == id } }
@@ -69,7 +99,7 @@ final class AppModel: ObservableObject {
 
     func homeRows(for group: OutputGroup) -> [HomeRow] {
         let rs = results[group] ?? []
-        let legByID = Dictionary(uniqueKeysWithValues: catalog.data.legs.map { ($0.id, $0) })
+        let legByID = Dictionary(uniqueKeysWithValues: (corridor?.legs ?? []).map { ($0.id, $0) })
         var rows: [HomeRow] = []
         var seen = Set<String>()
         for r in rs {
@@ -106,7 +136,7 @@ struct RootView: View {
 
     private var mainTabs: some View {
         TabView {
-            HomeView()
+            NavigationStack { CorridorListView() }
                 .tabItem { Label("Compare", systemImage: "arrow.left.arrow.right") }
             ProfileView()
                 .tabItem { Label("Setup", systemImage: "gearshape") }
@@ -120,9 +150,70 @@ struct RootView: View {
         switch screen {
         case "detail":  NavigationStack { MethodDetailView(legID: ProcessInfo.processInfo.environment["UITEST_LEG"] ?? "wise_card_atm") }
         case "atm":     NavigationStack { SubgroupDetailView(title: "ATM withdrawal", subgroupKey: "atm_cash", memberIDs: ["schwab_debit_atm", "wise_card_atm", "revolut_card_atm", "atm_debit", "cc_advance"]) }
+        case "home":    NavigationStack { corridorHome }
         case "setup":   ProfileView()
         default:        mainTabs
         }
     }
+
+    @ViewBuilder private var corridorHome: some View {
+        if let c = model.corridors.first(where: { $0.id == (ProcessInfo.processInfo.environment["UITEST_CORRIDOR"] ?? "usd_thb") }) {
+            HomeView(corridor: c)
+        } else {
+            ContentUnavailableView("No corridor", systemImage: "questionmark")
+        }
+    }
     #endif
+}
+
+/// The corridor menu — one row per corridor, live mid as the teaser.
+struct CorridorListView: View {
+    @EnvironmentObject var model: AppModel
+
+    var body: some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 18) {
+                SectionLabel(text: "Corridors")
+                    .padding(.top, 8)
+                Card {
+                    ForEach(Array(model.corridors.enumerated()), id: \.element.id) { idx, c in
+                        if idx > 0 { Divider().padding(.leading, 16) }
+                        NavigationLink {
+                            HomeView(corridor: c)
+                        } label: {
+                            corridorRow(c)
+                        }
+                        .buttonStyle(.plain)
+                    }
+                }
+            }
+            .padding(.horizontal, 16)
+            .padding(.bottom, 96)
+        }
+        .background(Color.appBackground)
+        .navigationTitle("ThaiCash")
+        .navigationBarTitleDisplayMode(.inline)
+    }
+
+    private func corridorRow(_ c: Corridor) -> some View {
+        HStack(spacing: 10) {
+            VStack(alignment: .leading, spacing: 3) {
+                Text(c.label).font(.system(size: 16, weight: .medium))
+                Text("Mid-market now").font(.caption).foregroundStyle(.secondary)
+            }
+            Spacer()
+            VStack(alignment: .trailing, spacing: 2) {
+                Text(midText(c)).font(.system(size: 17, weight: .semibold)).monospacedDigit()
+                Text("THB / \(c.base)").font(.system(size: 9, weight: .semibold)).kerning(0.8)
+                    .foregroundStyle(.tertiary)
+            }
+            Image(systemName: "chevron.right").font(.caption.weight(.semibold)).foregroundStyle(.tertiary)
+        }
+        .padding(.horizontal, 18).padding(.vertical, 16)
+        .contentShape(Rectangle())
+    }
+
+    private func midText(_ c: Corridor) -> String {
+        model.rates.rate(for: c.base).map { Fmt.rate($0.value) } ?? "—"
+    }
 }

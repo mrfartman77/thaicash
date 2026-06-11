@@ -8,7 +8,7 @@ final class CatalogService: ObservableObject {
     @Published private(set) var data: Catalog
     @Published private(set) var needsAppUpdate = false
 
-    static let maxSupportedSchema = 4   // 4: crypto_thb_bank output group
+    static let maxSupportedSchema = 5   // 5: multi-corridor (USD/EUR/AUD → THB)
     static let remoteURL = URL(string: "https://raw.githubusercontent.com/mrfartman77/thaicash-data/main/catalog.json")!
 
     private static var cacheURL: URL {
@@ -49,7 +49,6 @@ final class CatalogService: ObservableObject {
             return c
         }
         // Seed should always be in the bundle; this empty fallback just prevents a crash.
-        return Catalog(schemaVersion: maxSupportedSchema, catalogUpdated: "1970-01-01",
-                       atmHostFeeThb: 220, atmCapThb: 20_000, legs: [])
+        return Catalog(schemaVersion: maxSupportedSchema, catalogUpdated: "1970-01-01", corridors: [])
     }
 }

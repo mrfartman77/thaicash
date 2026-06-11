@@ -173,14 +173,26 @@ struct SubgroupDirectory: Codable {
     var entries: [DirectoryEntry]
 }
 
+/// One conversion corridor (USD→THB, EUR→THB, …): its own method legs, booth
+/// directory and locator sections. The Home experience is corridor-scoped;
+/// the corridor menu sits one level up.
+struct Corridor: Codable, Identifiable, Hashable {
+    static func == (a: Corridor, b: Corridor) -> Bool { a.id == b.id }
+    func hash(into h: inout Hasher) { h.combine(id) }
+
+    var id: String                     // "usd_thb"
+    var base: String                   // ISO code of the home currency ("USD")
+    var baseSymbol: String             // "$", "€", "A$"
+    var label: String                  // "USD → THB"
+    var legs: [Leg]
+    var booths: [BoothInfo]?
+    var directories: [String: SubgroupDirectory]?
+}
+
 struct Catalog: Codable {
     var schemaVersion: Int
     var catalogUpdated: String         // ISO date or datetime (UTC) — lexicographic compare works
-    var atmHostFeeThb: Decimal
-    var atmCapThb: Decimal
-    var legs: [Leg]
-    var booths: [BoothInfo]?           // optional: old cached catalogs still decode
-    var directories: [String: SubgroupDirectory]?   // subgroup key → locator section
+    var corridors: [Corridor]
 }
 
 // MARK: - Profile (local, persisted on every change)

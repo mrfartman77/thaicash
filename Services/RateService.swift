@@ -1,7 +1,7 @@
 import Foundation
 
 struct Rate: Codable, Equatable {
-    var value: Decimal           // THB per 1 USD
+    var value: Decimal           // THB per 1 unit of the base currency
     var asOf: Date               // when the rate is dated (not fetch time)
     var nextUpdate: Date?        // provider's next scheduled update (open.er-api)
     var source: Source
@@ -16,13 +16,13 @@ struct RatePoint: Identifiable {
     var id: Date { date }
 }
 
-protocol RateProvider { func fetch() async throws -> Rate }
+protocol RateProvider { func fetch(base: String) async throws -> Rate }
 enum RateError: Error { case badStatus, noRate }
 
 /// PRIMARY — keyless, updates daily incl. weekends, returns a next-update time.
 struct OpenErApiProvider: RateProvider {
-    func fetch() async throws -> Rate {
-        let url = URL(string: "https://open.er-api.com/v6/latest/USD")!
+    func fetch(base: String) async throws -> Rate {
+        let url = URL(string: "https://open.er-api.com/v6/latest/\(base)")!
         let (data, resp) = try await URLSession.shared.data(from: url)
         guard (resp as? HTTPURLResponse)?.statusCode == 200 else { throw RateError.badStatus }
         let dto = try JSONDecoder().decode(DTO.self, from: data)
@@ -49,8 +49,8 @@ struct FrankfurterProvider: RateProvider {
         f.locale = Locale(identifier: "en_US_POSIX")
         return f
     }()
-    func fetch() async throws -> Rate {
-        let url = URL(string: "https://api.frankfurter.dev/v1/latest?base=USD&symbols=THB")! // .dev — .app 301s
+    func fetch(base: String) async throws -> Rate {
+        let url = URL(string: "https://api.frankfurter.dev/v1/latest?base=\(base)&symbols=THB")! // .dev — .app 301s
         let (data, resp) = try await URLSession.shared.data(from: url)
         guard (resp as? HTTPURLResponse)?.statusCode == 200 else { throw RateError.badStatus }
         let dto = try JSONDecoder().decode(DTO.self, from: data)
@@ -62,40 +62,53 @@ struct FrankfurterProvider: RateProvider {
     private struct DTO: Decodable { let date: String; let rates: [String: Double] }
 }
 
+/// THB mid rates per base currency (USD, EUR, AUD, …) — one cache, one 7-day
+/// history series each. Corridors load lazily; everything stays offline-safe.
 @MainActor
 final class RateService: ObservableObject {
-    @Published private(set) var rate: Rate?
-    @Published private(set) var freshness: Freshness = .none
-    @Published private(set) var history: [RatePoint] = []   // ~7-day USD→THB series for the chart
+    @Published private(set) var rates: [String: Rate] = [:]
+    @Published private(set) var histories: [String: [RatePoint]] = [:]
 
     private let providers: [RateProvider] = [OpenErApiProvider(), FrankfurterProvider()] // primary → fallback
-    private let cacheKey = "thbfx.rate"
 
-    func loadAndRefreshIfNeeded() async {
-        rate = readCache(); recompute()         // show last-known instantly
-        if shouldRefresh() { await refresh() } else { await loadHistory() }
+    func rate(for base: String) -> Rate? { rates[base] }
+    func history(for base: String) -> [RatePoint] { histories[base] ?? [] }
+
+    func freshness(for base: String) -> Freshness {
+        guard let r = rates[base] else { return .none }
+        let days = Int(Date().timeIntervalSince(r.asOf) / 86_400)
+        return days <= 1 ? .fresh : .stale(days: days)
     }
 
-    func refresh() async {
+    func loadAndRefreshIfNeeded(base: String) async {
+        if rates[base] == nil { rates[base] = readCache(base) }   // last-known instantly
+        if shouldRefresh(base) { await refresh(base: base) }
+        else if histories[base]?.isEmpty != false { await loadHistory(base: base) }
+    }
+
+    func refresh(base: String) async {
         for provider in providers {
-            if let r = try? await provider.fetch() { rate = r; writeCache(r); break }
+            if let r = try? await provider.fetch(base: base) {
+                rates[base] = r; writeCache(r, base: base); break
+            }
         }
-        recompute()                              // all failed → keep cache, surface staleness
-        await loadHistory()
+        await loadHistory(base: base)   // all failed → keep cache, staleness surfaces
     }
 
-    func loadHistory() async {
-        if let series = try? await fetchHistory(), !series.isEmpty { history = series }
+    func loadHistory(base: String) async {
+        if let series = try? await fetchHistory(base: base), !series.isEmpty {
+            histories[base] = series
+        }
     }
 
-    private func fetchHistory() async throws -> [RatePoint] {
+    private func fetchHistory(base: String) async throws -> [RatePoint] {
         let df = DateFormatter()
         df.dateFormat = "yyyy-MM-dd"
         df.timeZone = TimeZone(identifier: "UTC")
         df.locale = Locale(identifier: "en_US_POSIX")
         let end = Date()
         let start = Calendar.current.date(byAdding: .day, value: -7, to: end) ?? end
-        let url = URL(string: "https://api.frankfurter.dev/v1/\(df.string(from: start))..\(df.string(from: end))?base=USD&symbols=THB")!
+        let url = URL(string: "https://api.frankfurter.dev/v1/\(df.string(from: start))..\(df.string(from: end))?base=\(base)&symbols=THB")!
         let (data, resp) = try await URLSession.shared.data(from: url)
         guard (resp as? HTTPURLResponse)?.statusCode == 200 else { throw RateError.badStatus }
         let dto = try JSONDecoder().decode(HistoryDTO.self, from: data)
@@ -107,26 +120,22 @@ final class RateService: ObservableObject {
 
     private struct HistoryDTO: Decodable { let rates: [String: [String: Double]] }
 
-    func setManual(_ value: Decimal) {           // first-launch-offline escape hatch
+    func setManual(base: String, value: Decimal) { // first-launch-offline escape hatch
         let r = Rate(value: value, asOf: Date(), nextUpdate: nil, source: .manual)
-        rate = r; writeCache(r); recompute()
+        rates[base] = r; writeCache(r, base: base)
     }
 
-    private func shouldRefresh() -> Bool {
-        guard let r = rate else { return true }
+    private func shouldRefresh(_ base: String) -> Bool {
+        guard let r = rates[base] else { return true }
         if let next = r.nextUpdate { return Date() >= next }
         return Date().timeIntervalSince(r.asOf) > 12 * 3600
     }
-    private func recompute() {
-        guard let r = rate else { freshness = .none; return }
-        let days = Int(Date().timeIntervalSince(r.asOf) / 86_400)
-        freshness = days <= 1 ? .fresh : .stale(days: days)
-    }
-    private func readCache() -> Rate? {
-        guard let d = UserDefaults.standard.data(forKey: cacheKey) else { return nil }
+    private func cacheKey(_ base: String) -> String { "thbfx.rate.\(base)" }
+    private func readCache(_ base: String) -> Rate? {
+        guard let d = UserDefaults.standard.data(forKey: cacheKey(base)) else { return nil }
         return try? JSONDecoder().decode(Rate.self, from: d)
     }
-    private func writeCache(_ r: Rate) {
-        if let d = try? JSONEncoder().encode(r) { UserDefaults.standard.set(d, forKey: cacheKey) }
+    private func writeCache(_ r: Rate, base: String) {
+        if let d = try? JSONEncoder().encode(r) { UserDefaults.standard.set(d, forKey: cacheKey(base)) }
     }
 }

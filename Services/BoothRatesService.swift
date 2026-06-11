@@ -6,11 +6,13 @@ struct BoothRateEntry: Codable, Identifiable {
     var id: String              // matches catalog.booths id
     var name: String
     var ok: Bool
-    var usd100Buy: Decimal?     // THB per $1, USD-100 denomination buy rate
+    var buy: [String: Decimal]? // currency code → large-note board buy (THB per unit)
     var fetchedAt: String?
     var siteTime: String?
     var source: String?         // e.g. "via CashChanger" when a third party supplies the board
     var reason: String?         // why a booth is pending/stale
+
+    func buyRate(_ base: String) -> Decimal? { buy?[base] }
 }
 
 struct BoothRatesFeed: Codable {
@@ -27,7 +29,7 @@ struct BoothRatesFeed: Codable {
 final class BoothRatesService: ObservableObject {
     @Published private(set) var feed: BoothRatesFeed?
 
-    static let maxSupportedVersion = 1
+    static let maxSupportedVersion = 2   // 2: multi-currency `buy` dict per booth
     static let remoteURL = URL(string: "https://raw.githubusercontent.com/mrfartman77/thaicash-data/main/data/booth-rates.json")!
 
     /// Feeds older than this don't drive the engine (boards reprice daily);
@@ -77,20 +79,20 @@ final class BoothRatesService: ObservableObject {
         return age < Self.engineMaxAge
     }
 
-    /// Live entries, best board first.
-    var live: [BoothRateEntry] {
+    /// Live entries for a corridor's base currency, best board first.
+    func live(base: String) -> [BoothRateEntry] {
         (feed?.rates ?? [])
-            .filter { $0.ok && $0.usd100Buy != nil }
-            .sorted { ($0.usd100Buy ?? 0) > ($1.usd100Buy ?? 0) }
+            .filter { $0.ok && $0.buyRate(base) != nil }
+            .sorted { ($0.buyRate(base) ?? 0) > ($1.buyRate(base) ?? 0) }
     }
 
-    /// The measured best booth — only when fresh enough to trust.
-    var bestUsable: BoothRateEntry? {
-        isFreshEnoughForEngine ? live.first : nil
+    /// The measured best booth for a base currency — only when fresh enough to trust.
+    func bestUsable(base: String) -> BoothRateEntry? {
+        isFreshEnoughForEngine ? live(base: base).first : nil
     }
 
     /// What the engine uses as the booth leg's default applied rate.
-    var bestLiveRate: Decimal? { bestUsable?.usd100Buy }
+    func bestLiveRate(base: String) -> Decimal? { bestUsable(base: base)?.buyRate(base) }
 
     // MARK: cache
 

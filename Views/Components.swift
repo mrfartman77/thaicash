@@ -28,6 +28,7 @@ enum Fmt {
     static func num(_ d: Decimal) -> String { grouped.string(from: NSDecimalNumber(decimal: d)) ?? "0" }
     static func baht(_ d: Decimal) -> String { d < 0 ? "−฿" + num(-d) : "฿" + num(d) }
     static func usd(_ d: Decimal) -> String { "$" + num(d) }
+    static func base(_ d: Decimal, symbol: String) -> String { symbol + num(d) }
     static func rate(_ d: Decimal) -> String {
         String(format: "%.2f", NSDecimalNumber(decimal: d).doubleValue)
     }

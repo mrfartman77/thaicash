@@ -1,39 +1,43 @@
 import SwiftUI
 import Charts
 
+/// One corridor's comparison screen (the original USD→THB Home, now scoped).
 struct HomeView: View {
     @EnvironmentObject var model: AppModel
+    let corridor: Corridor
 
     var body: some View {
         let grouped = model.results
-        NavigationStack {
-            ScrollView {
-                VStack(spacing: 18) {
-                    RateChartView()
-                    AmountCard()
-                    ForEach(model.groupsInOrder, id: \.self) { group in
-                        if let results = grouped[group], !results.isEmpty {
-                            GroupCard(group: group, results: results,
-                                      rows: model.homeRows(for: group))
-                        }
+        ScrollView {
+            VStack(spacing: 18) {
+                RateChartView(corridor: corridor)
+                AmountCard(corridor: corridor)
+                ForEach(model.groupsInOrder, id: \.self) { group in
+                    if let results = grouped[group], !results.isEmpty {
+                        GroupCard(group: group, results: results,
+                                  rows: model.homeRows(for: group),
+                                  baseSymbol: corridor.baseSymbol)
                     }
                 }
-                .padding(.horizontal, 16)
-                .padding(.top, 4)
-                .padding(.bottom, 96)   // clear the iOS 26 floating tab bar so the last group scrolls into view
             }
-            .background(Color.appBackground)
-            .scrollIndicators(.visible)
-            .scrollDismissesKeyboard(.interactively)
-            .navigationBarTitleDisplayMode(.inline)
+            .padding(.horizontal, 16)
+            .padding(.top, 4)
+            .padding(.bottom, 96)   // clear the iOS 26 floating tab bar so the last group scrolls into view
         }
+        .background(Color.appBackground)
+        .scrollIndicators(.visible)
+        .scrollDismissesKeyboard(.interactively)
+        .navigationTitle(corridor.label)
+        .navigationBarTitleDisplayMode(.inline)
+        .onAppear { model.select(corridor) }
     }
 }
 
 struct RateChartView: View {
     @EnvironmentObject var model: AppModel
+    let corridor: Corridor
 
-    private var points: [RatePoint] { model.rates.history }
+    private var points: [RatePoint] { model.rates.history(for: corridor.base) }
 
     var body: some View {
         Card {
@@ -42,7 +46,7 @@ struct RateChartView: View {
                     VStack(alignment: .leading, spacing: 3) {
                         HStack(spacing: 5) {
                             Circle().fill(freshnessColor).frame(width: 6, height: 6)
-                            Text("THB / USD").font(.system(size: 10.5, weight: .semibold)).kerning(1.4).foregroundStyle(.secondary)
+                            Text("THB / \(corridor.base)").font(.system(size: 10.5, weight: .semibold)).kerning(1.4).foregroundStyle(.secondary)
                         }
                         Text(currentText).font(.system(size: 26, weight: .semibold)).monospacedDigit()
                     }
@@ -76,15 +80,15 @@ struct RateChartView: View {
             }
             .padding(16)
         }
-        .onTapGesture { Task { await model.rates.refresh() } }
+        .onTapGesture { Task { await model.rates.refresh(base: corridor.base) } }
     }
 
     private var currentText: String {
-        guard let v = model.rates.rate?.value else { return "—" }
+        guard let v = model.rates.rate(for: corridor.base)?.value else { return "—" }
         return "฿" + Fmt.rate(v)
     }
     private var freshnessColor: Color {
-        switch model.rates.freshness {
+        switch model.rates.freshness(for: corridor.base) {
         case .fresh: return .sage
         case .stale: return .warnAmber
         case .none:  return .gray
@@ -105,17 +109,18 @@ struct RateChartView: View {
     }
 }
 
-enum InputCurrency { case thb, usd }
+enum InputCurrency { case thb, base }
 
 struct AmountCard: View {
     @EnvironmentObject var model: AppModel
+    let corridor: Corridor
     @FocusState private var focused: Bool
     @State private var currency: InputCurrency = .thb
     @State private var amountText: String = ""
 
     private let thbPresets: [Decimal] = [10_000, 20_000, 40_000, 60_000]
-    private let usdPresets: [Decimal] = [100, 300, 500, 1_000]
-    private var rMid: Decimal { model.rates.rate?.value ?? 0 }
+    private let basePresets: [Decimal] = [100, 300, 500, 1_000]
+    private var rMid: Decimal { model.rates.rate(for: corridor.base)?.value ?? 0 }
 
     var body: some View {
         Card {
@@ -123,7 +128,7 @@ struct AmountCard: View {
                 // Centerline lockup: every element vertically centered on one axis
                 // (deliberately NOT baseline-aligned — user preference).
                 HStack(alignment: .center, spacing: 9) {
-                    Text(currency == .thb ? "฿" : "$")
+                    Text(currency == .thb ? "฿" : corridor.baseSymbol)
                         .font(.system(size: 34, weight: .medium))
                         .foregroundStyle(currency == .thb ? Color.bahtGold : Color.sage)
                         .onTapGesture { toggleCurrency() }
@@ -147,7 +152,7 @@ struct AmountCard: View {
                             let grouped = digits.isEmpty ? "" : Fmt.num(Decimal(string: digits) ?? 0)
                             if grouped != newValue { amountText = grouped }   // commas; empty allowed
                             let entered = Decimal(string: digits) ?? 0
-                            let thb = currency == .usd ? entered * rMid : entered
+                            let thb = currency == .base ? entered * rMid : entered
                             if model.amountTHB != thb { model.amountTHB = thb }
                         }
                         .onAppear { syncTextFromModel() }
@@ -178,14 +183,14 @@ struct AmountCard: View {
         }
     }
 
-    private var presets: [Decimal] { currency == .thb ? thbPresets : usdPresets }
+    private var presets: [Decimal] { currency == .thb ? thbPresets : basePresets }
 
 
     // String-backed editing: a value-bound numeric TextField refuses to delete the
     // last digit (empty text can't parse, so SwiftUI restores the old value). The
     // string buffer may be empty (grey "0" placeholder); digits parse into the model.
     private func toggleCurrency() {
-        currency = (currency == .thb ? .usd : .thb)
+        currency = (currency == .thb ? .base : .thb)
         syncTextFromModel()
     }
     private func syncTextFromModel() {
@@ -196,17 +201,17 @@ struct AmountCard: View {
 
     private var equivalent: String {
         switch currency {
-        case .thb: return rMid > 0 ? "≈ " + Fmt.usd(model.amountTHB / rMid) : ""
-        case .usd: return "≈ " + Fmt.baht(model.amountTHB)
+        case .thb:  return rMid > 0 ? "≈ " + Fmt.base(model.amountTHB / rMid, symbol: corridor.baseSymbol) : ""
+        case .base: return "≈ " + Fmt.baht(model.amountTHB)
         }
     }
 
     private func applyPreset(_ p: Decimal) {
-        model.amountTHB = (currency == .usd) ? p * rMid : p
+        model.amountTHB = (currency == .base) ? p * rMid : p
         syncTextFromModel()
     }
     private func presetLabel(_ p: Decimal) -> String {
-        let symbol = currency == .thb ? "฿" : "$"
+        let symbol = currency == .thb ? "฿" : corridor.baseSymbol
         let v = NSDecimalNumber(decimal: p).doubleValue
         if v >= 1000, v.truncatingRemainder(dividingBy: 1000) == 0 {
             return symbol + String(format: "%.0fk", v / 1000)
@@ -215,8 +220,8 @@ struct AmountCard: View {
     }
     private func isSelected(_ p: Decimal) -> Bool {
         switch currency {
-        case .thb: return model.amountTHB == p
-        case .usd: return rMid > 0 && (model.amountTHB / rMid) == p
+        case .thb:  return model.amountTHB == p
+        case .base: return rMid > 0 && (model.amountTHB / rMid) == p
         }
     }
 }
@@ -231,6 +236,7 @@ struct GroupCard: View {
     let group: OutputGroup
     let results: [MethodResult]          // every leg — "the priciest" stays honest even when rows fold
     let rows: [AppModel.HomeRow]
+    var baseSymbol: String = "$"
 
     @State private var rowMinHeight: CGFloat = 0
 
@@ -260,7 +266,7 @@ struct GroupCard: View {
                 MethodDetailView(legID: r.id)
             } label: {
                 MethodRow(result: r, savings: r.isBest ? worstCost - r.costThb : nil,
-                          showsWarning: false)
+                          showsWarning: false, rateSymbol: baseSymbol)
             }
             .buttonStyle(.plain)
         case .rollup(let key, let label, let best, let memberIDs):
@@ -271,7 +277,7 @@ struct GroupCard: View {
                           savings: best.isBest ? worstCost - best.costThb : nil,
                           titleOverride: label,
                           subtitleTag: best.label.components(separatedBy: " · ").first,
-                          showsWarning: false)
+                          showsWarning: false, rateSymbol: baseSymbol)
             }
             .buttonStyle(.plain)
         }
@@ -285,6 +291,7 @@ struct MethodRow: View {
     var subtitleTag: String? = nil      // …and name the winning member up front
     var inList: Bool = false            // List rows: the List supplies insets + chevron
     var showsWarning: Bool = true       // Home rows hide chips — the detail screen carries them
+    var rateSymbol: String = "$"        // corridor base symbol for the ฿/x figure
 
     var body: some View {
         HStack(alignment: .top, spacing: 10) {
@@ -321,7 +328,7 @@ struct MethodRow: View {
     private var subtitle: String {
         // Rollup rows name the winning member instead of the ฿/$ figure —
         // the exact rate lives one tap deeper, and both don't fit one line.
-        var s = subtitleTag.map { "\($0) · " } ?? "\(Fmt.rate(result.effectiveRate)) ฿/$ · "
+        var s = subtitleTag.map { "\($0) · " } ?? "\(Fmt.rate(result.effectiveRate)) ฿/\(rateSymbol) · "
         s += "\(Fmt.pct(result.costVsMidPct)) vs rate"
         if result.withdrawals > 1 { s += " · ×\(result.withdrawals)" }
         if let t = result.speed { s += " · \(t)" }

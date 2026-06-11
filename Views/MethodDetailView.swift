@@ -5,7 +5,9 @@ struct MethodDetailView: View {
     let legID: String
 
     private var r: MethodResult? { model.result(id: legID) }
-    private var leg: Leg? { model.catalog.data.legs.first { $0.id == legID } }
+    private var leg: Leg? { model.corridor?.legs.first { $0.id == legID } }
+    private var base: String { model.corridor?.base ?? "USD" }
+    private var baseSymbol: String { model.corridor?.baseSymbol ?? "$" }
 
     var body: some View {
         Group {
@@ -93,11 +95,11 @@ struct MethodDetailView: View {
 
     /// Measured booths first (best board on top), then pending, AVOID last.
     private var boothDisplays: [BoothDisplay] {
-        guard let booths = model.catalog.data.booths, !booths.isEmpty else { return [] }
-        let byID = Dictionary(uniqueKeysWithValues: model.boothRates.live.map { ($0.id, $0) })
+        guard let booths = model.corridor?.booths, !booths.isEmpty else { return [] }
+        let byID = Dictionary(uniqueKeysWithValues: model.boothRates.live(base: base).map { ($0.id, $0) })
         let all = booths.map { BoothDisplay(info: $0, live: byID[$0.id]) }
         let rated = all.filter { $0.live != nil }
-            .sorted { ($0.live?.usd100Buy ?? 0) > ($1.live?.usd100Buy ?? 0) }
+            .sorted { ($0.live?.buyRate(base) ?? 0) > ($1.live?.buyRate(base) ?? 0) }
         let pending = all.filter { $0.live == nil && $0.info.quality != "avoid" }
         let avoid = all.filter { $0.live == nil && $0.info.quality == "avoid" }
         return rated + pending + avoid
@@ -116,9 +118,9 @@ struct MethodDetailView: View {
         }
         if model.boothRates.isFreshEnoughForEngine,
            let best = boothDisplays.first(where: { $0.live != nil }),
-           let r = best.live?.usd100Buy {
+           let r = best.live?.buyRate(base) {
             let age = model.boothRates.ageText.map { ", updated \($0)" } ?? ""
-            return "Using today's best board rate — \(best.info.name), \(Fmt.rate(r)) ฿/$\(age)."
+            return "Using today's best board rate — \(best.info.name), \(Fmt.rate(r)) ฿/\(baseSymbol)\(age)."
         }
         return "Estimated — the typical margin at the chains below."
     }
@@ -127,13 +129,13 @@ struct MethodDetailView: View {
     private var cryptoSourceText: String {
         if let r = model.cryptoRates.liveRates[legID] {
             let age = model.cryptoRates.ageText.map { ", updated \($0)" } ?? ""
-            return "Using the venue's live USDT/THB bid — \(Fmt.rate(r)) ฿/$\(age)."
+            return "Using the venue's live bid — \(Fmt.rate(r)) ฿ per USDT\(age)."
         }
         return "No fresh board data — assuming the pair trades at the mid-market rate."
     }
 
     private var boothFooter: String {
-        var s = "Live USD-100 board rates, refreshed every ~2h"
+        var s = "Live large-note \(base) board rates, refreshed hourly"
         if let age = model.boothRates.ageText { s += " · updated \(age)" }
         return s + ". Well-known chains only — tap to open in Maps."
     }
@@ -149,12 +151,12 @@ struct MethodDetailView: View {
                 if let n = d.info.note { Text(n).font(.caption2).foregroundStyle(.secondary) }
             }
             Spacer()
-            if let r = d.live?.usd100Buy {
+            if let r = d.live?.buyRate(base) {
                 VStack(alignment: .trailing, spacing: 1) {
                     Text(Fmt.rate(r))
                         .font(.system(size: 16, weight: .semibold)).monospacedDigit()
                         .foregroundStyle(d.id == bestLiveID ? Color.sage : .primary)
-                    Text("฿/$ BOARD").font(.system(size: 8, weight: .semibold)).kerning(0.6)
+                    Text("฿/\(baseSymbol) BOARD").font(.system(size: 8, weight: .semibold)).kerning(0.6)
                         .foregroundStyle(.secondary)
                     if let src = d.live?.source {
                         Text(src).font(.system(size: 8)).foregroundStyle(.secondary)
@@ -188,7 +190,7 @@ struct MethodDetailView: View {
     }
 
     private func summary(_ r: MethodResult) -> String {
-        var s = "\(Fmt.rate(r.effectiveRate)) ฿/$ · \(Fmt.pct(r.costVsMidPct)) vs rate"
+        var s = "\(Fmt.rate(r.effectiveRate)) ฿/\(baseSymbol) · \(Fmt.pct(r.costVsMidPct)) vs rate"
         if r.withdrawals > 1 { s += " · \(r.withdrawals) withdrawals" }
         if let t = r.speed { s += " · arrives \(t)" }
         return s
@@ -213,13 +215,13 @@ struct SubgroupDetailView: View {
 
     /// Catalog-supplied footer (any member's), so the copy updates remotely.
     private var footnote: String {
-        let legs = model.catalog.data.legs
+        let legs = model.corridor?.legs ?? []
         return memberIDs.compactMap { id in legs.first { $0.id == id }?.subgroupNote }.first
             ?? "Same machine, different card — the card decides the cost."
     }
 
     private var directory: SubgroupDirectory? {
-        model.catalog.data.directories?[subgroupKey]
+        model.corridor?.directories?[subgroupKey]
     }
 
     var body: some View {
@@ -230,7 +232,8 @@ struct SubgroupDetailView: View {
                         MethodDetailView(legID: r.id)
                     } label: {
                         MethodRow(result: r, savings: r.isBest ? worstCost - r.costThb : nil,
-                                  inList: true)
+                                  inList: true,
+                                  rateSymbol: model.corridor?.baseSymbol ?? "$")
                     }
                 }
             } footer: {
