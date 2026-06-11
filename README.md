@@ -5,7 +5,7 @@ On-device iOS app that shows the **real, all-in cost of converting USD → THB**
 ## What it does
 Enter the baht you need ("I need ฿40,000" — or enter dollars and it converts at the live rate) and see every method ranked by all-in cost, inside output groups that aren't interchangeable:
 - **Cash in hand** — exchange booth, or an ATM withdrawal (Schwab debit vs Wise vs Revolut vs your own debit/credit — one Home row, ranked by card inside; no brand is featured, the data decides)
-- **THB in your bank** — Wise / Remitly / … transfers
+- **THB in your bank** — Wise / Remitly / Revolut / Xe / OFX, ranked by what lands
 
 Each method opens into a detail screen — the booth's carries a live directory of Bangkok's best-known chains with today's scraped board rates and Apple Maps links. A 7-day rate chart sits on top. Your setup (your bank's fees, card terms, days in Thailand) persists locally.
 
