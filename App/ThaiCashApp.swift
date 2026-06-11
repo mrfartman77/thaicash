@@ -217,7 +217,9 @@ struct CorridorListView: View {
         HStack(spacing: 10) {
             VStack(alignment: .leading, spacing: 3) {
                 Text(c.label).font(.system(size: 16, weight: .medium))
-                Text("Mid-market now").font(.caption).foregroundStyle(.secondary)
+                Text(freshnessCaption(c))
+                    .font(.caption)
+                    .foregroundStyle(captionColor(c))
             }
             Spacer()
             VStack(alignment: .trailing, spacing: 2) {
@@ -233,5 +235,18 @@ struct CorridorListView: View {
 
     private func midText(_ c: Corridor) -> String {
         model.rates.rate(for: c.base).map { Fmt.rate($0.value) } ?? "—"
+    }
+
+    /// Honest freshness: the mid is a DAILY rate — never claim "now".
+    private func freshnessCaption(_ c: Corridor) -> String {
+        switch model.rates.freshness(for: c.base) {
+        case .fresh:            return "Mid-market · today"
+        case .stale(let days):  return "Mid-market · \(days)d old"
+        case .none:             return "Mid-market · no rate yet"
+        }
+    }
+    private func captionColor(_ c: Corridor) -> Color {
+        if case .stale = model.rates.freshness(for: c.base) { return .warnAmber }
+        return Color.secondary
     }
 }
