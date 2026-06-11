@@ -259,7 +259,8 @@ struct GroupCard: View {
             NavigationLink {
                 MethodDetailView(legID: r.id)
             } label: {
-                MethodRow(result: r, savings: r.isBest ? worstCost - r.costThb : nil)
+                MethodRow(result: r, savings: r.isBest ? worstCost - r.costThb : nil,
+                          showsWarning: false)
             }
             .buttonStyle(.plain)
         case .rollup(let key, let label, let best, let memberIDs):
@@ -269,7 +270,8 @@ struct GroupCard: View {
                 MethodRow(result: best,
                           savings: best.isBest ? worstCost - best.costThb : nil,
                           titleOverride: label,
-                          subtitleTag: best.label.components(separatedBy: " · ").first)
+                          subtitleTag: best.label.components(separatedBy: " · ").first,
+                          showsWarning: false)
             }
             .buttonStyle(.plain)
         }
@@ -282,6 +284,7 @@ struct MethodRow: View {
     var titleOverride: String? = nil    // rollup rows show the subgroup label…
     var subtitleTag: String? = nil      // …and name the winning member up front
     var inList: Bool = false            // List rows: the List supplies insets + chevron
+    var showsWarning: Bool = true       // Home rows hide chips — the detail screen carries them
 
     var body: some View {
         HStack(alignment: .top, spacing: 10) {
@@ -295,7 +298,7 @@ struct MethodRow: View {
                     Text("Saves \(Fmt.baht(s)) vs the priciest")
                         .font(.caption).monospacedDigit().foregroundStyle(Color.sage)
                 }
-                if let w = result.warnings.first {
+                if showsWarning, let w = result.warnings.first {
                     WarningChip(text: w)
                 }
             }
