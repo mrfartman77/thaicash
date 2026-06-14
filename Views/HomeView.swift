@@ -37,7 +37,8 @@ struct RateChartView: View {
     @EnvironmentObject var model: AppModel
     let corridor: Corridor
 
-    private var points: [RatePoint] { model.rates.history(for: corridor.base) }
+    private var points: [RatePoint] { model.corridorHistory(corridor) }
+    private var isStablecoin: Bool { corridor.stablecoin == true && model.usdtMarketRate != nil }
 
     var body: some View {
         Card {
@@ -46,7 +47,8 @@ struct RateChartView: View {
                     VStack(alignment: .leading, spacing: 3) {
                         HStack(spacing: 5) {
                             Circle().fill(freshnessColor).frame(width: 6, height: 6)
-                            Text("THB / \(corridor.base)").font(.system(size: 10.5, weight: .semibold)).kerning(1.4).foregroundStyle(.secondary)
+                            Text(isStablecoin ? "USDT BID" : "THB / \(corridor.base)")
+                                .font(.system(size: 10.5, weight: .semibold)).kerning(1.4).foregroundStyle(.secondary)
                         }
                         Text(currentText).font(.system(size: 26, weight: .semibold)).monospacedDigit()
                     }
@@ -84,10 +86,11 @@ struct RateChartView: View {
     }
 
     private var currentText: String {
-        guard let v = model.rates.rate(for: corridor.base)?.value else { return "—" }
+        guard let v = model.corridorRate(corridor) else { return "—" }
         return "฿" + Fmt.rate(v)
     }
     private var freshnessColor: Color {
+        if isStablecoin { return model.cryptoRates.isFreshEnoughForEngine ? .sage : .warnAmber }
         switch model.rates.freshness(for: corridor.base) {
         case .fresh: return .sage
         case .stale: return .warnAmber
@@ -120,7 +123,8 @@ struct AmountCard: View {
 
     private let thbPresets: [Decimal] = [10_000, 20_000, 40_000, 60_000]
     private var basePresets: [Decimal] { corridor.basePresets ?? [100, 300, 500, 1_000] }
-    private var rMid: Decimal { model.rates.rate(for: corridor.base)?.value ?? 0 }
+    // Stablecoin corridors price the base-equivalent at the live USDT rate too.
+    private var rMid: Decimal { model.corridorRate(corridor) ?? 0 }
 
     var body: some View {
         Card {

@@ -59,6 +59,35 @@ final class AppModel: ObservableObject {
     /// THB per 1 unit of the selected corridor's base currency.
     var rMid: Decimal? { corridor.flatMap { rates.rate(for: $0.base)?.value } }
 
+    // MARK: corridor display rate (USDT shows its real market rate, not the USD mid)
+
+    /// USDT/THB market rate = the average live venue bid. nil when no fresh feed
+    /// (then the USDT corridor falls back to the USD mid).
+    var usdtMarketRate: Decimal? {
+        let bids = Array(cryptoRates.liveRates.values)
+        guard !bids.isEmpty else { return nil }
+        return bids.reduce(0, +) / Decimal(bids.count)
+    }
+
+    /// Headline rate for a corridor: the live USDT market rate for a stablecoin
+    /// corridor (so menu + chart match the venue rows), otherwise the FX mid.
+    func corridorRate(_ c: Corridor) -> Decimal? {
+        if c.stablecoin == true { return usdtMarketRate ?? rates.rate(for: "USD")?.value }
+        return rates.rate(for: c.base)?.value
+    }
+
+    /// 7-day series for a corridor. USDT has no history feed, so borrow the
+    /// pegged USD/THB trend and lift it to the live USDT level — same shape,
+    /// correct level.
+    func corridorHistory(_ c: Corridor) -> [RatePoint] {
+        guard c.stablecoin == true else { return rates.history(for: c.base) }
+        let usd = rates.history(for: "USD")
+        guard let usdtNow = usdtMarketRate,
+              let usdNow = rates.rate(for: "USD")?.value, !usd.isEmpty else { return usd }
+        let shift = ((usdtNow - usdNow) as NSDecimalNumber).doubleValue
+        return usd.map { RatePoint(date: $0.date, value: $0.value + shift) }
+    }
+
     /// Crypto venue bids are THB-per-USDT. For non-USD corridors, convert to
     /// THB-per-base via the mid cross (1 base ≈ baseMid/usdMid USDT, USDT≈$1)
     /// so every corridor compares apples to apples. Internal so the detail
@@ -251,11 +280,15 @@ struct CorridorListView: View {
     }
 
     private func midText(_ c: Corridor) -> String {
-        model.rates.rate(for: c.base).map { Fmt.rate($0.value) } ?? "—"
+        model.corridorRate(c).map { Fmt.rate($0) } ?? "—"
     }
 
-    /// Honest freshness: the mid is a DAILY rate — never claim "now".
+    /// Honest freshness: the mid is a DAILY rate — never claim "now". USDT shows
+    /// the live venue bid instead, so it surfaces the crypto feed's age.
     private func freshnessCaption(_ c: Corridor) -> String {
+        if c.stablecoin == true, model.usdtMarketRate != nil {
+            return "Live bid · \(model.cryptoRates.ageText ?? "now")"
+        }
         switch model.rates.freshness(for: c.base) {
         case .fresh:            return "Mid-market · today"
         case .stale(let days):  return "Mid-market · \(days)d old"
@@ -263,6 +296,7 @@ struct CorridorListView: View {
         }
     }
     private func captionColor(_ c: Corridor) -> Color {
+        if c.stablecoin == true, model.usdtMarketRate != nil { return Color.secondary }
         if case .stale = model.rates.freshness(for: c.base) { return .warnAmber }
         return Color.secondary
     }
