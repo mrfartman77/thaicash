@@ -185,6 +185,9 @@ struct Corridor: Codable, Identifiable, Hashable {
     var baseSymbol: String             // "$", "€", "A$"
     var label: String                  // "USD → THB"
     var basePresets: [Decimal]?        // amount-card presets in base units (nil = generic 100/300/500/1k)
+    var stablecoin: Bool?              // 1:1-pegged (USDT): cost is measured vs the venue's
+                                       // own quote, not the FX mid — so cost == the fees, and
+                                       // the headline rate is the bid, not an after-fee rate.
     var legs: [Leg]
     var booths: [BoothInfo]?
     var directories: [String: SubgroupDirectory]?
@@ -245,8 +248,9 @@ struct MethodResult: Identifiable {
     var group: OutputGroup
     var netThb: Decimal         // what you walk away with (== target in target mode)
     var usdCost: Decimal        // all-in USD it costs
-    var effectiveRate: Decimal  // THB per $1, all-in
-    var costThb: Decimal        // total cost vs a costless mid-market conversion
+    var effectiveRate: Decimal  // THB per $1, all-in (after fees) — drives ranking
+    var displayRate: Decimal    // the rate to show: after-fee for fiat, the quoted bid for stablecoins
+    var costThb: Decimal        // total cost vs the benchmark (FX mid, or the bid for stablecoins)
     var costVsMidPct: Decimal   // the "+X% vs rate" headline
     var withdrawals: Int
     var lines: [CostLine]       // itemized "where it goes", sums to costThb

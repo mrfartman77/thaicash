@@ -311,6 +311,36 @@ final class EngineTests: XCTestCase {
         XCTAssertNil(Engine.evaluate(leg: leg(), profile: p, targetThb: 1_000, rMid: 35).speed)
     }
 
+    // MARK: - stablecoin benchmark (USDT trades above the FX mid)
+
+    func testStablecoinCostIsFeesNotMidPremium() {
+        // Venue bid 32.82 sits ABOVE the 32.73 USD mid (USDT's Thai premium).
+        // A ฿20 withdrawal fee is the only cost.
+        let usdt = leg(id: "binance", fees: [fee(.flatThb, 20, label: "Withdrawal")])
+        let p = Profile()
+
+        // vs the FX mid → phantom negative cost (the old bug).
+        let oldWay = Engine.evaluate(leg: usdt, profile: p, targetThb: 16_366, rMid: d("32.731"),
+                                     liveRates: ["binance": d("32.82")])
+        XCTAssertTrue(oldWay.costThb < 0, "premium over mid makes the mid-benchmarked cost negative")
+
+        // vs the venue's own bid → cost is exactly the ฿20 fee, and the headline
+        // rate is the bid, not the after-fee rate.
+        let fixed = Engine.evaluate(leg: usdt, profile: p, targetThb: 16_366, rMid: d("32.731"),
+                                    liveRates: ["binance": d("32.82")], benchmarkVsApplied: true)
+        assertEqual(fixed.displayRate, d("32.82"))               // shows the bid
+        assertEqual(fixed.costThb, 20, accuracy: d("0.01"))      // cost == the fee
+        XCTAssertTrue(fixed.costThb > 0, "no more negative cost")
+        XCTAssertGreaterThan(fixed.displayRate, fixed.effectiveRate, "bid > after-fee rate")
+    }
+
+    func testFiatStillBenchmarksVsMid() {
+        // Without the flag, nothing changes: displayRate == effectiveRate, cost vs mid.
+        let r = Engine.evaluate(leg: leg(rateSource: .midMarketMargin, fxMarginPct: d("0.003")),
+                                profile: Profile(), targetThb: 35_000, rMid: 35)
+        assertEqual(r.displayRate, r.effectiveRate)
+    }
+
     // MARK: - guards & warnings
 
     func testZeroRateGuard() {

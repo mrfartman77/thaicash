@@ -131,7 +131,11 @@ struct MethodDetailView: View {
     private var cryptoSourceText: String {
         if let raw = model.cryptoRates.liveRates[legID] {
             let age = model.cryptoRates.ageText.map { ", updated \($0)" } ?? ""
-            if base == "USD" || base == "USDT" {
+            if base == "USDT" {
+                // USDT ≈ $1: the headline IS the live bid; the cost is just the fees.
+                return "Live bid \(Fmt.rate(raw)) ฿/USDT\(age). The cost shown is the venue's fee on this amount."
+            }
+            if base == "USD" {
                 return "Using the venue's live bid — \(Fmt.rate(raw)) ฿ per USDT\(age)."
             }
             if let eff = model.liveRatesForCorridor[legID] {
@@ -197,7 +201,7 @@ struct MethodDetailView: View {
     }
 
     private func summary(_ r: MethodResult) -> String {
-        var s = "\(Fmt.rate(r.effectiveRate)) ฿/\(baseSymbol) · \(Fmt.pct(r.costVsMidPct)) vs rate"
+        var s = "\(Fmt.rate(r.displayRate)) ฿/\(baseSymbol) · \(Fmt.pct(r.costVsMidPct)) vs rate"
         if r.withdrawals > 1 { s += " · \(r.withdrawals) withdrawals" }
         if let t = r.speed { s += " · arrives \(t)" }
         return s

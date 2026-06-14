@@ -79,7 +79,8 @@ final class AppModel: ObservableObject {
         return Engine.compare(legs: c.legs, profile: profile,
                               targetThb: amountTHB, rMid: rMid,
                               liveBoothRate: boothRates.bestLiveRate(base: c.base),
-                              liveRates: liveRatesForCorridor)
+                              liveRates: liveRatesForCorridor,
+                              benchmarkVsApplied: c.stablecoin == true)
     }
     var groupsInOrder: [OutputGroup] { OutputGroup.allCases.sorted { $0.sortIndex < $1.sortIndex } }
     func result(id: String) -> MethodResult? { results.values.flatMap { $0 }.first { $0.id == id } }

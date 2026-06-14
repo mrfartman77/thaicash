@@ -66,6 +66,7 @@ final class CatalogSeedTests: XCTestCase {
         let usdt = c.corridors[4]
         XCTAssertEqual(Set(usdt.legs.map(\.id)), ["binance_th_usdt", "bitkub_usdt", "bitazza_usdt"])
         XCTAssertTrue(usdt.legs.allSatisfy { $0.group == .cryptoThb })
+        XCTAssertEqual(usdt.stablecoin, true, "USDT corridor must be flagged stablecoin")
 
         // Crypto lives ONLY in its own corridor — never in the fiat menus.
         for cor in c.corridors.dropLast() {

@@ -328,7 +328,7 @@ struct MethodRow: View {
     private var subtitle: String {
         // Rollup rows name the winning member instead of the ฿/$ figure —
         // the exact rate lives one tap deeper, and both don't fit one line.
-        var s = subtitleTag.map { "\($0) · " } ?? "\(Fmt.rate(result.effectiveRate)) ฿/\(rateSymbol) · "
+        var s = subtitleTag.map { "\($0) · " } ?? "\(Fmt.rate(result.displayRate)) ฿/\(rateSymbol) · "
         s += "\(Fmt.pct(result.costVsMidPct)) vs rate"
         if result.withdrawals > 1 { s += " · ×\(result.withdrawals)" }
         if let t = result.speed { s += " · \(t)" }

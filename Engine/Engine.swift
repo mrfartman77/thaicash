@@ -9,12 +9,14 @@ enum Engine {
                         targetThb: Decimal,
                         rMid: Decimal,
                         liveBoothRate: Decimal? = nil,
-                        liveRates: [String: Decimal] = [:]) -> [OutputGroup: [MethodResult]] {
+                        liveRates: [String: Decimal] = [:],
+                        benchmarkVsApplied: Bool = false) -> [OutputGroup: [MethodResult]] {
 
         var byGroup: [OutputGroup: [MethodResult]] = [:]
         for leg in legs {
             let result = evaluate(leg: leg, profile: profile, targetThb: targetThb, rMid: rMid,
-                                  liveBoothRate: liveBoothRate, liveRates: liveRates)
+                                  liveBoothRate: liveBoothRate, liveRates: liveRates,
+                                  benchmarkVsApplied: benchmarkVsApplied)
             byGroup[leg.group, default: []].append(result)
         }
 
@@ -27,12 +29,17 @@ enum Engine {
         return out
     }
 
+    /// `benchmarkVsApplied` (stablecoin corridors): measure cost against the
+    /// venue's own applied quote instead of the FX mid. USDT trades at a Thai
+    /// premium over the USD mid, so benchmarking it against that mid produced a
+    /// phantom "negative cost". Against its own bid, the cost is simply the fees.
     static func evaluate(leg: Leg,
                          profile: Profile,
                          targetThb: Decimal,
                          rMid: Decimal,
                          liveBoothRate: Decimal? = nil,
-                         liveRates: [String: Decimal] = [:]) -> MethodResult {
+                         liveRates: [String: Decimal] = [:],
+                         benchmarkVsApplied: Bool = false) -> MethodResult {
 
         // ---- number of withdrawals (cap-driven) ----
         let withdrawals: Int = {
@@ -84,7 +91,8 @@ enum Engine {
         guard rEff > 0 else {
             return MethodResult(id: leg.id, label: leg.label, group: leg.group,
                                 netThb: targetThb, usdCost: 0,
-                                effectiveRate: 0, costThb: 0, costVsMidPct: 0, withdrawals: withdrawals,
+                                effectiveRate: 0, displayRate: 0,
+                                costThb: 0, costVsMidPct: 0, withdrawals: withdrawals,
                                 lines: [], warnings: ["Rate unavailable"], speed: leg.speed)
         }
 
@@ -149,8 +157,13 @@ enum Engine {
         // ---- totals ----
         let usdCost = baseUsd + usdFees + interestUsd + (thbFees / rEff)
         let effectiveRate = usdCost > 0 ? targetThb / usdCost : 0
-        let costThb = usdCost * (rMid - effectiveRate)
-        let costVsMidPct = rMid > 0 ? (rMid - effectiveRate) / rMid * 100 : 0
+        // Stablecoin corridors compare against the venue's own quote (rEff), so
+        // cost == the fees; fiat compares against the FX mid. The headline rate
+        // follows: the bid for stablecoins, the after-fee rate for fiat.
+        let benchmark = benchmarkVsApplied ? rEff : rMid
+        let displayRate = benchmarkVsApplied ? rEff : effectiveRate
+        let costThb = usdCost * (benchmark - effectiveRate)
+        let costVsMidPct = benchmark > 0 ? (benchmark - effectiveRate) / benchmark * 100 : 0
 
         // ---- warnings ----
         var warnings: [String] = []
@@ -168,6 +181,7 @@ enum Engine {
         return MethodResult(
             id: leg.id, label: leg.label, group: leg.group,
             netThb: targetThb, usdCost: usdCost, effectiveRate: effectiveRate,
+            displayRate: displayRate,
             costThb: costThb, costVsMidPct: costVsMidPct, withdrawals: withdrawals,
             lines: lines, warnings: warnings, speed: leg.speed
         )
