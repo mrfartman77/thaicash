@@ -24,7 +24,7 @@ final class CatalogSeedTests: XCTestCase {
                        "Seed schema and the app's schema guard must move together")
         XCTAssertFalse(c.catalogUpdated.isEmpty)
 
-        XCTAssertEqual(c.corridors.map(\.id), ["usd_thb", "eur_thb", "aud_thb", "cny_thb", "usdt_thb"])
+        XCTAssertEqual(c.corridors.map(\.id), ["usd_thb", "usdt_thb", "eur_thb", "aud_thb", "cny_thb"])
         for cor in c.corridors {
             XCTAssertFalse(cor.base.isEmpty)
             XCTAssertFalse(cor.baseSymbol.isEmpty)
@@ -44,15 +44,20 @@ final class CatalogSeedTests: XCTestCase {
             "xe_transfer_bank", "ofx_transfer_bank",
         ])
 
-        let eur = c.corridors[1]
+        let usdt = c.corridors[1]
+        XCTAssertEqual(Set(usdt.legs.map(\.id)), ["binance_th_usdt", "bitkub_usdt", "bitazza_usdt"])
+        XCTAssertTrue(usdt.legs.allSatisfy { $0.group == .cryptoThb })
+        XCTAssertEqual(usdt.stablecoin, true, "USDT corridor must be flagged stablecoin")
+
+        let eur = c.corridors[2]
         XCTAssertTrue(eur.legs.contains { $0.id == "trade_republic_atm" }, "EUR hero card missing")
         XCTAssertTrue(eur.legs.contains { $0.id == "instarem_transfer_bank" })
 
-        let aud = c.corridors[2]
+        let aud = c.corridors[3]
         XCTAssertTrue(aud.legs.contains { $0.id == "macquarie_atm" }, "AUD hero card missing")
         XCTAssertTrue(aud.legs.contains { $0.id == "instarem_transfer_bank" })
 
-        let cny = c.corridors[3]
+        let cny = c.corridors[4]
         XCTAssertTrue(cny.legs.contains { $0.id == "unionpay_atm" }, "CNY UnionPay rail missing")
         XCTAssertTrue(cny.legs.contains { $0.id == "alipay_remit_bank" })
         // AEON's ATM network is defunct — it must never reappear in a locator.
@@ -63,13 +68,8 @@ final class CatalogSeedTests: XCTestCase {
             }
         }
 
-        let usdt = c.corridors[4]
-        XCTAssertEqual(Set(usdt.legs.map(\.id)), ["binance_th_usdt", "bitkub_usdt", "bitazza_usdt"])
-        XCTAssertTrue(usdt.legs.allSatisfy { $0.group == .cryptoThb })
-        XCTAssertEqual(usdt.stablecoin, true, "USDT corridor must be flagged stablecoin")
-
-        // Crypto lives ONLY in its own corridor — never in the fiat menus.
-        for cor in c.corridors.dropLast() {
+        // Crypto lives ONLY in the stablecoin corridor — never in the fiat menus.
+        for cor in c.corridors where cor.stablecoin != true {
             XCTAssertFalse(cor.legs.contains { $0.group == .cryptoThb },
                            "\(cor.id): crypto leg leaked into a fiat corridor")
         }
