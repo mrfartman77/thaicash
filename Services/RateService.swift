@@ -3,9 +3,9 @@ import Foundation
 struct Rate: Codable, Equatable {
     var value: Decimal           // THB per 1 unit of the base currency
     var asOf: Date               // when the rate is dated (not fetch time)
-    var nextUpdate: Date?        // provider's next scheduled update (open.er-api)
+    var nextUpdate: Date?        // when to fetch again (provider-given or synthesized)
     var source: Source
-    enum Source: String, Codable { case openErApi, frankfurter, manual }
+    enum Source: String, Codable { case wiseLive, openErApi, frankfurter, manual }
 }
 
 enum Freshness: Equatable { case fresh, stale(days: Int), none }
@@ -19,7 +19,26 @@ struct RatePoint: Identifiable {
 protocol RateProvider { func fetch(base: String) async throws -> Rate }
 enum RateError: Error { case badStatus, noRate }
 
-/// PRIMARY — keyless, updates daily incl. weekends, returns a next-update time.
+/// PRIMARY — Wise's public live mid (the endpoint their own site uses):
+/// keyless, updates continuously, timestamped to the minute. Unofficial, so
+/// the daily providers below remain as fallbacks; a 15-minute synthesized
+/// nextUpdate keeps launches re-fetching while the app is used.
+struct WiseLiveProvider: RateProvider {
+    func fetch(base: String) async throws -> Rate {
+        let url = URL(string: "https://wise.com/rates/live?source=\(base)&target=THB")!
+        let (data, resp) = try await URLSession.shared.data(from: url)
+        guard (resp as? HTTPURLResponse)?.statusCode == 200 else { throw RateError.badStatus }
+        let dto = try JSONDecoder().decode(DTO.self, from: data)
+        guard dto.value > 0 else { throw RateError.noRate }
+        return Rate(value: Decimal(dto.value),
+                    asOf: Date(timeIntervalSince1970: dto.time / 1000),
+                    nextUpdate: Date().addingTimeInterval(15 * 60),
+                    source: .wiseLive)
+    }
+    private struct DTO: Decodable { let value: Double; let time: TimeInterval }
+}
+
+/// FALLBACK 1 — keyless, updates daily incl. weekends, returns a next-update time.
 struct OpenErApiProvider: RateProvider {
     func fetch(base: String) async throws -> Rate {
         let url = URL(string: "https://open.er-api.com/v6/latest/\(base)")!
@@ -40,7 +59,7 @@ struct OpenErApiProvider: RateProvider {
     }
 }
 
-/// FALLBACK — ECB reference (keyless, self-hostable). Lags to last business day.
+/// FALLBACK 2 — ECB reference (keyless, self-hostable). Lags to last business day.
 struct FrankfurterProvider: RateProvider {
     private static let df: DateFormatter = {
         let f = DateFormatter()
@@ -71,7 +90,8 @@ final class RateService: ObservableObject {
     @Published private(set) var rates: [String: Rate] = [:]
     @Published private(set) var histories: [String: [RatePoint]] = [:]
 
-    private let providers: [RateProvider] = [OpenErApiProvider(), FrankfurterProvider()] // primary → fallback
+    private let providers: [RateProvider] =
+        [WiseLiveProvider(), OpenErApiProvider(), FrankfurterProvider()] // live → daily → ECB
 
     private func fiat(_ base: String) -> String { base == "USDT" ? "USD" : base }
 
@@ -82,6 +102,13 @@ final class RateService: ObservableObject {
         guard let r = rates[fiat(base)] else { return .none }
         let days = Int(Date().timeIntervalSince(r.asOf) / 86_400)
         return days <= 1 ? .fresh : .stale(days: days)
+    }
+
+    /// True when the shown mid came from the live provider within the last hour —
+    /// lets captions say "live" honestly and fall back to "today" once it ages.
+    func isLive(for base: String) -> Bool {
+        guard let r = rates[fiat(base)], r.source == .wiseLive else { return false }
+        return Date().timeIntervalSince(r.asOf) < 3600
     }
 
     func loadAndRefreshIfNeeded(base: String) async {

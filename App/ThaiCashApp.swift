@@ -283,12 +283,14 @@ struct CorridorListView: View {
         model.corridorRate(c).map { Fmt.rate($0) } ?? "—"
     }
 
-    /// Honest freshness: the mid is a DAILY rate — never claim "now". USDT shows
-    /// the live venue bid instead, so it surfaces the crypto feed's age.
+    /// Honest freshness: "live" only while the mid actually came from the live
+    /// provider within the hour; a daily-source fallback says "today". USDT
+    /// shows the live venue bid instead, so it surfaces the crypto feed's age.
     private func freshnessCaption(_ c: Corridor) -> String {
         if c.stablecoin == true, model.usdtMarketRate != nil {
             return "Live bid · \(model.cryptoRates.ageText ?? "now")"
         }
+        if model.rates.isLive(for: c.base) { return "Mid-market · live" }
         switch model.rates.freshness(for: c.base) {
         case .fresh:            return "Mid-market · today"
         case .stale(let days):  return "Mid-market · \(days)d old"
